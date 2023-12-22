@@ -144,7 +144,9 @@ SIZE_DELIMITED = -1
 class _DateTime(datetime):
     """Subclass of datetime with an attribute to store the original nanos value from a Timestamp field"""
 
-    nanos: int
+    __slots__ = datetime.__slots__ + ("_nanos",)
+
+    _nanos: int
     """Nano seconds from the original Timestamp object"""
 
 
@@ -1976,8 +1978,8 @@ class _Timestamp(Timestamp):
         seconds, us = divmod(offset_us, 10**6)
         # If ths given datetime is our subclass containing nanos from the original Timestamp
         # We will prefer those nanos over the datetime micros.
-        if isinstance(dt, _DateTime) and getattr(dt, "nanos", None):
-            return cls(seconds, dt.nanos)
+        if isinstance(dt, _DateTime) and getattr(dt, "_nanos", None):
+            return cls(seconds, dt._nanos)
         return cls(seconds, us * 1000)
 
     def to_datetime(self) -> _DateTime:
@@ -1987,15 +1989,15 @@ class _Timestamp(Timestamp):
         offset = timedelta(seconds=self.seconds, microseconds=self.nanos // 1000)
         dt = DATETIME_ZERO + offset
         # Store the original nanos in our subclass of datetime.
-        dt.nanos = self.nanos
+        setattr(dt, "_nanos", self.nanos)
         return dt
 
     @staticmethod
     def timestamp_to_json(dt: datetime) -> str:
         # If ths given datetime is our subclass containing nanos from the original Timestamp
         # We will prefer those nanos over the datetime micros.
-        if isinstance(dt, _DateTime) and getattr(dt, "nanos", None):
-            nanos = dt.nanos
+        if isinstance(dt, _DateTime) and getattr(dt, "_nanos", None):
+            nanos = dt._nanos
         else:
             nanos = dt.microsecond * 1e3
         if dt.tzinfo is not None:
