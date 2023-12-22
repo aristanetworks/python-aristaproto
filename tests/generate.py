@@ -187,19 +187,9 @@ def main():
         whitelist = set(sys.argv[1:])
 
     if platform.system() == "Windows":
-        # for python version prior to 3.8, loop policy needs to be set explicitly
-        # https://docs.python.org/3/library/asyncio-policy.html#asyncio.DefaultEventLoopPolicy
-        try:
-            asyncio.set_event_loop_policy(asyncio.WindowsProactorEventLoopPolicy())
-        except AttributeError:
-            # python < 3.7 does not have asyncio.WindowsProactorEventLoopPolicy
-            asyncio.get_event_loop_policy().set_event_loop(asyncio.ProactorEventLoop())
+        asyncio.set_event_loop_policy(asyncio.WindowsProactorEventLoopPolicy())
 
-    try:
-        asyncio.run(generate(whitelist, verbose))
-    except AttributeError:
-        # compatibility code for python < 3.7
-        asyncio.get_event_loop().run_until_complete(generate(whitelist, verbose))
+    asyncio.run(generate(whitelist, verbose))
 
 
 if __name__ == "__main__":

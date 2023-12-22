@@ -144,8 +144,11 @@ SIZE_DELIMITED = -1
 class _DateTime(datetime):
     """Subclass of datetime with an attribute to store the original nanos value from a Timestamp field"""
 
-    nanos: int
-    """Nano seconds from the original Timestamp object"""
+    __slots__ = "_nanos"
+
+    @property
+    def nanos(self):
+        return self._nanos
 
 
 # Protobuf datetimes start at the Unix Epoch in 1970 in UTC.
@@ -1976,7 +1979,7 @@ class _Timestamp(Timestamp):
         seconds, us = divmod(offset_us, 10**6)
         # If ths given datetime is our subclass containing nanos from the original Timestamp
         # We will prefer those nanos over the datetime micros.
-        if isinstance(dt, _DateTime) and getattr(dt, "nanos", None):
+        if isinstance(dt, _DateTime) and dt.nanos:
             return cls(seconds, dt.nanos)
         return cls(seconds, us * 1000)
 
@@ -1987,14 +1990,14 @@ class _Timestamp(Timestamp):
         offset = timedelta(seconds=self.seconds, microseconds=self.nanos // 1000)
         dt = DATETIME_ZERO + offset
         # Store the original nanos in our subclass of datetime.
-        dt.nanos = self.nanos
+        setattr(dt, "_nanos", self.nanos)
         return dt
 
     @staticmethod
     def timestamp_to_json(dt: datetime) -> str:
         # If ths given datetime is our subclass containing nanos from the original Timestamp
         # We will prefer those nanos over the datetime micros.
-        if isinstance(dt, _DateTime) and getattr(dt, "nanos", None):
+        if isinstance(dt, _DateTime) and dt.nanos:
             nanos = dt.nanos
         else:
             nanos = dt.microsecond * 1e3
