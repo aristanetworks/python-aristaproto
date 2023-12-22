@@ -144,8 +144,14 @@ SIZE_DELIMITED = -1
 class _DateTime(datetime):
     """Subclass of datetime with an attribute to store the original nanos value from a Timestamp field"""
 
-    _nanos: int = 0
+    __slots__ = datetime.__slots__ + "_nanos"
+    _nanos: int
     """Nano seconds from the original Timestamp object"""
+
+    def __new__(cls, *args, **kwargs):
+        self = super().__new__(*args, **kwargs)
+        self._nanos = 0
+        return self
 
 
 # Protobuf datetimes start at the Unix Epoch in 1970 in UTC.
