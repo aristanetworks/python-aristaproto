@@ -2,6 +2,12 @@
 
 This project is forked from <https://github.com/danielgtaylor/python-betterproto> @ [b8a091ae7055dd949d193695a06c9536ad51eea8](https://github.com/danielgtaylor/python-betterproto/commit/b8a091ae7055dd949d193695a06c9536ad51eea8)
 
+Changes in this project compared with the base project:
+
+- Keep nanosecond precision for `Timestamp`.
+  - Subclass `datetime` to store the original nano-second value when converting from `Timestamp` to `datetime`.
+  - On conversion from the subclass of `datetime` to `Timestamp` the original nano-second value is restored.
+
 ## Installation
 
 First, install the package. Note that the `[compiler]` feature flag tells it to install extra dependencies only needed by the `protoc` plugin:

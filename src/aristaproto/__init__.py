@@ -141,9 +141,16 @@ WIRE_LEN_DELIM_TYPES = [TYPE_STRING, TYPE_BYTES, TYPE_MESSAGE, TYPE_MAP]
 SIZE_DELIMITED = -1
 
 
+class _DateTime(datetime):
+    """Subclass of datetime with an attribute to store the original nanos value from a Timestamp field"""
+
+    nanos: int
+    """Nano seconds from the original Timestamp object"""
+
+
 # Protobuf datetimes start at the Unix Epoch in 1970 in UTC.
-def datetime_default_gen() -> datetime:
-    return datetime(1970, 1, 1, tzinfo=timezone.utc)
+def datetime_default_gen() -> _DateTime:
+    return _DateTime(1970, 1, 1, tzinfo=timezone.utc)
 
 
 DATETIME_ZERO = datetime_default_gen()
@@ -1967,18 +1974,30 @@ class _Timestamp(Timestamp):
             offset.days * 24 * 60 * 60 + offset.seconds
         ) * 10**6 + offset.microseconds
         seconds, us = divmod(offset_us, 10**6)
+        # If ths given datetime is our subclass containing nanos from the original Timestamp
+        # We will prefer those nanos over the datetime micros.
+        if isinstance(dt, _DateTime) and getattr(dt, "nanos", None):
+            return cls(seconds, dt.nanos)
         return cls(seconds, us * 1000)
 
-    def to_datetime(self) -> datetime:
+    def to_datetime(self) -> _DateTime:
         # datetime.fromtimestamp() expects a timestamp in seconds, not microseconds
         # if we pass it as a floating point number, we will run into rounding errors
         # see also #407
         offset = timedelta(seconds=self.seconds, microseconds=self.nanos // 1000)
-        return DATETIME_ZERO + offset
+        dt = DATETIME_ZERO + offset
+        # Store the original nanos in our subclass of datetime.
+        dt.nanos = self.nanos
+        return dt
 
     @staticmethod
     def timestamp_to_json(dt: datetime) -> str:
-        nanos = dt.microsecond * 1e3
+        # If ths given datetime is our subclass containing nanos from the original Timestamp
+        # We will prefer those nanos over the datetime micros.
+        if isinstance(dt, _DateTime) and getattr(dt, "nanos", None):
+            nanos = dt.nanos
+        else:
+            nanos = dt.microsecond * 1e3
         if dt.tzinfo is not None:
             # change timezone aware datetime objects to utc
             dt = dt.astimezone(timezone.utc)
