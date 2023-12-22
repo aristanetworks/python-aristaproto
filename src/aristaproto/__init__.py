@@ -146,9 +146,6 @@ class _DateTime(datetime):
 
     __slots__ = "_nanos"
 
-    _nanos: int
-    """Nano seconds from the original Timestamp object"""
-
     @property
     def nanos(self):
         return self._nanos
