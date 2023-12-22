@@ -144,13 +144,11 @@ SIZE_DELIMITED = -1
 class _DateTime(datetime):
     """Subclass of datetime with an attribute to store the original nanos value from a Timestamp field"""
 
-    __slots__ = datetime.__slots__ + "_nanos"
-    _nanos: int
-    """Nano seconds from the original Timestamp object"""
+    __slots__ = "_nanos"
 
-    def __new__(cls, *args, **kwargs):
+    def __new__(cls, *args, nanos=0, **kwargs):
         self = super().__new__(*args, **kwargs)
-        self._nanos = 0
+        self._nanos = nanos
         return self
 
 
