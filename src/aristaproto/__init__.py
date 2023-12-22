@@ -146,10 +146,8 @@ class _DateTime(datetime):
 
     __slots__ = "_nanos"
 
-    def __new__(cls, *args, nanos=0, **kwargs):
-        self = super().__new__(cls, *args, **kwargs)
-        self._nanos = nanos
-        return self
+    _nanos: int = 0
+    """Nano seconds from the original Timestamp object"""
 
 
 # Protobuf datetimes start at the Unix Epoch in 1970 in UTC.
