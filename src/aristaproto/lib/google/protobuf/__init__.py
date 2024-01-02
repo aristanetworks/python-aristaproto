@@ -2,14 +2,19 @@
 # sources: google/protobuf/any.proto, google/protobuf/api.proto, google/protobuf/descriptor.proto, google/protobuf/duration.proto, google/protobuf/empty.proto, google/protobuf/field_mask.proto, google/protobuf/source_context.proto, google/protobuf/struct.proto, google/protobuf/timestamp.proto, google/protobuf/type.proto, google/protobuf/wrappers.proto
 # plugin: python-aristaproto
 # This file has been @generated
+
 import warnings
 from dataclasses import dataclass
 from typing import (
     Dict,
     List,
+    Mapping,
 )
 
+from typing_extensions import Self
+
 import aristaproto
+from aristaproto.utils import hybridmethod
 
 
 class Syntax(aristaproto.Enum):
@@ -716,9 +721,9 @@ class EnumDescriptorProto(aristaproto.Message):
     name: str = aristaproto.string_field(1)
     value: List["EnumValueDescriptorProto"] = aristaproto.message_field(2)
     options: "EnumOptions" = aristaproto.message_field(3)
-    reserved_range: List[
-        "EnumDescriptorProtoEnumReservedRange"
-    ] = aristaproto.message_field(4)
+    reserved_range: List["EnumDescriptorProtoEnumReservedRange"] = (
+        aristaproto.message_field(4)
+    )
     """
     Range of reserved numeric values. Reserved numeric values may not be used
     by enum values in the same enum declaration. Reserved ranges may not
@@ -1457,6 +1462,32 @@ class Struct(aristaproto.Message):
         1, aristaproto.TYPE_STRING, aristaproto.TYPE_MESSAGE
     )
     """Unordered map of dynamically typed values."""
+
+    @hybridmethod
+    def from_dict(cls: "type[Self]", value: Mapping[str, Any]) -> Self:  # type: ignore
+        self = cls()
+        return self.from_dict(value)
+
+    @from_dict.instancemethod
+    def from_dict(self, value: Mapping[str, Any]) -> Self:
+        fields = {**value}
+        for k in fields:
+            if hasattr(fields[k], "from_dict"):
+                fields[k] = fields[k].from_dict()
+
+        self.fields = fields
+        return self
+
+    def to_dict(
+        self,
+        casing: aristaproto.Casing = aristaproto.Casing.CAMEL,
+        include_default_values: bool = False,
+    ) -> Dict[str, Any]:
+        output = {**self.fields}
+        for k in self.fields:
+            if hasattr(self.fields[k], "to_dict"):
+                output[k] = self.fields[k].to_dict(casing, include_default_values)
+        return output
 
 
 @dataclass(eq=False, repr=False)
