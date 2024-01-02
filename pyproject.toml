@@ -143,8 +143,7 @@ requires =
     tox-poetry-installer[poetry]==1.0.0b1
 env_list =
     py311
-    py38
-    py37
+    py39
 
 [testenv]
 commands =
