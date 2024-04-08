@@ -94,11 +94,11 @@ cmd = """
 protoc
     --plugin=protoc-gen-custom=src/aristaproto/plugin/main.py
     --custom_opt=INCLUDE_GOOGLE
-    --custom_out=src/aristaproto/lib
+    --custom_out=src/aristaproto/lib/std
     -I /usr/local/include/
     /usr/local/include/google/protobuf/**/*.proto
 """
-help = "Regenerate the types in aristaproto.lib.google"
+help = "Regenerate the types in aristaproto.lib.std.google"
 
 # CI tasks
 
