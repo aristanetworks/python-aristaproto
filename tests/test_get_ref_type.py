@@ -50,23 +50,23 @@ def test_reference_google_wellknown_types_non_wrappers(
     [
         (
             ".google.protobuf.Empty",
-            '"betterproto_lib_pydantic_google_protobuf.Empty"',
-            "import betterproto.lib.pydantic.google.protobuf as betterproto_lib_pydantic_google_protobuf",
+            '"aristaproto_lib_pydantic_google_protobuf.Empty"',
+            "import aristaproto.lib.pydantic.google.protobuf as aristaproto_lib_pydantic_google_protobuf",
         ),
         (
             ".google.protobuf.Struct",
-            '"betterproto_lib_pydantic_google_protobuf.Struct"',
-            "import betterproto.lib.pydantic.google.protobuf as betterproto_lib_pydantic_google_protobuf",
+            '"aristaproto_lib_pydantic_google_protobuf.Struct"',
+            "import aristaproto.lib.pydantic.google.protobuf as aristaproto_lib_pydantic_google_protobuf",
         ),
         (
             ".google.protobuf.ListValue",
-            '"betterproto_lib_pydantic_google_protobuf.ListValue"',
-            "import betterproto.lib.pydantic.google.protobuf as betterproto_lib_pydantic_google_protobuf",
+            '"aristaproto_lib_pydantic_google_protobuf.ListValue"',
+            "import aristaproto.lib.pydantic.google.protobuf as aristaproto_lib_pydantic_google_protobuf",
         ),
         (
             ".google.protobuf.Value",
-            '"betterproto_lib_pydantic_google_protobuf.Value"',
-            "import betterproto.lib.pydantic.google.protobuf as betterproto_lib_pydantic_google_protobuf",
+            '"aristaproto_lib_pydantic_google_protobuf.Value"',
+            "import aristaproto.lib.pydantic.google.protobuf as aristaproto_lib_pydantic_google_protobuf",
         ),
     ],
 )
