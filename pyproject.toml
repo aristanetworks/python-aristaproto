@@ -1,6 +1,6 @@
 [tool.poetry]
 name = "aristaproto"
-version = "0.1.1"
+version = "0.1.2"
 description = "Arista Protobuf / Python gRPC bindings generator & library"
 authors = ["Arista Networks <ansible@arista.com>"]
 readme = "README.md"

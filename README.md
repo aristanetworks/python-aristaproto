@@ -1,9 +1,15 @@
 # Arista Protobuf / Python gRPC bindings generator & library
 
-This project is forked from <https://github.com/danielgtaylor/python-betterproto> @ [b8a091ae7055dd949d193695a06c9536ad51eea8](https://github.com/danielgtaylor/python-betterproto/commit/b8a091ae7055dd949d193695a06c9536ad51eea8)
+This was originally forked from <https://github.com/danielgtaylor/python-betterproto> @ [b8a091ae7055dd949d193695a06c9536ad51eea8](https://github.com/danielgtaylor/python-betterproto/commit/b8a091ae7055dd949d193695a06c9536ad51eea8).
+
+Afterwards commits up to `1f88b67eeb9871d33da154fd2c859b9d1aed62c1` on `python-betterproto` have been cherry-picked.
 
 Changes in this project compared with the base project:
 
+- Renamed to `aristaproto`.
+- Cut support for Python < 3.9.
+- Updating various CI actions and dependencies.
+- Merged docs from multiple `rst` files to MarkDown.
 - Keep nanosecond precision for `Timestamp`.
   - Subclass `datetime` to store the original nano-second value when converting from `Timestamp` to `datetime`.
   - On conversion from the subclass of `datetime` to `Timestamp` the original nano-second value is restored.
@@ -19,8 +25,6 @@ pip install "aristaproto[compiler]"
 # Install just the library (to use the generated code output)
 pip install aristaproto
 ```
-
-*Betterproto* is under active development. To install the latest beta version, use `pip install --pre aristaproto`.
 
 ## Getting Started
 
