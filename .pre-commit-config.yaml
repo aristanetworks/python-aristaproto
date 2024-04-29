@@ -20,9 +20,10 @@ repos:
         additional_dependencies:
           - toml
 
-  - repo: https://github.com/macisamuele/language-formatters-pre-commit-hooks
-    rev: v2.10.0
-    hooks:
-      - id: pretty-format-java
-        args: [--autofix, --aosp]
-        files: ^.*\.java$
+  # Removing since aristaproto don't use the java code and this breaks CI.
+  # - repo: https://github.com/macisamuele/language-formatters-pre-commit-hooks
+  #   rev: v2.10.0
+  #   hooks:
+  #     - id: pretty-format-java
+  #       args: [--autofix, --aosp]
+  #       files: ^.*\.java$
