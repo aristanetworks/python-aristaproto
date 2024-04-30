@@ -35,7 +35,48 @@ def test_reference_google_wellknown_types_non_wrappers(
     google_type: str, expected_name: str, expected_import: str
 ):
     imports = set()
-    name = get_type_reference(package="", imports=imports, source_type=google_type)
+    name = get_type_reference(
+        package="", imports=imports, source_type=google_type, pydantic=False
+    )
+
+    assert name == expected_name
+    assert imports.__contains__(
+        expected_import
+    ), f"{expected_import} not found in {imports}"
+
+
+@pytest.mark.parametrize(
+    ["google_type", "expected_name", "expected_import"],
+    [
+        (
+            ".google.protobuf.Empty",
+            '"aristaproto_lib_pydantic_google_protobuf.Empty"',
+            "import aristaproto.lib.pydantic.google.protobuf as aristaproto_lib_pydantic_google_protobuf",
+        ),
+        (
+            ".google.protobuf.Struct",
+            '"aristaproto_lib_pydantic_google_protobuf.Struct"',
+            "import aristaproto.lib.pydantic.google.protobuf as aristaproto_lib_pydantic_google_protobuf",
+        ),
+        (
+            ".google.protobuf.ListValue",
+            '"aristaproto_lib_pydantic_google_protobuf.ListValue"',
+            "import aristaproto.lib.pydantic.google.protobuf as aristaproto_lib_pydantic_google_protobuf",
+        ),
+        (
+            ".google.protobuf.Value",
+            '"aristaproto_lib_pydantic_google_protobuf.Value"',
+            "import aristaproto.lib.pydantic.google.protobuf as aristaproto_lib_pydantic_google_protobuf",
+        ),
+    ],
+)
+def test_reference_google_wellknown_types_non_wrappers_pydantic(
+    google_type: str, expected_name: str, expected_import: str
+):
+    imports = set()
+    name = get_type_reference(
+        package="", imports=imports, source_type=google_type, pydantic=True
+    )
 
     assert name == expected_name
     assert imports.__contains__(
