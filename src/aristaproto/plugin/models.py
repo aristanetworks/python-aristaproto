@@ -31,7 +31,6 @@ reference to `A` to `B`'s `fields` attribute.
 
 import builtins
 import re
-import textwrap
 from dataclasses import (
     dataclass,
     field,
@@ -48,12 +47,6 @@ from typing import (
 )
 
 import aristaproto
-from aristaproto import which_one_of
-from aristaproto.casing import sanitize_name
-from aristaproto.compile.importing import (
-    get_type_reference,
-    parse_source_type_name,
-)
 from aristaproto.compile.naming import (
     pythonize_class_name,
     pythonize_field_name,
@@ -71,6 +64,7 @@ from aristaproto.lib.google.protobuf import (
 )
 from aristaproto.lib.google.protobuf.compiler import CodeGeneratorRequest
 
+from .. import which_one_of
 from ..compile.importing import (
     get_type_reference,
     parse_source_type_name,
@@ -80,6 +74,10 @@ from ..compile.naming import (
     pythonize_enum_member_name,
     pythonize_field_name,
     pythonize_method_name,
+)
+from .typing_compiler import (
+    DirectImportTypingCompiler,
+    TypingCompiler,
 )
 
 
@@ -175,6 +173,7 @@ class ProtoContentBase:
     """Methods common to MessageCompiler, ServiceCompiler and ServiceMethodCompiler."""
 
     source_file: FileDescriptorProto
+    typing_compiler: TypingCompiler
     path: List[int]
     comment_indent: int = 4
     parent: Union["aristaproto.Message", "OutputTemplate"]
@@ -244,7 +243,6 @@ class OutputTemplate:
     input_files: List[str] = field(default_factory=list)
     imports: Set[str] = field(default_factory=set)
     datetime_imports: Set[str] = field(default_factory=set)
-    typing_imports: Set[str] = field(default_factory=set)
     pydantic_imports: Set[str] = field(default_factory=set)
     builtins_import: bool = False
     messages: List["MessageCompiler"] = field(default_factory=list)
@@ -253,6 +251,7 @@ class OutputTemplate:
     imports_type_checking_only: Set[str] = field(default_factory=set)
     pydantic_dataclasses: bool = False
     output: bool = True
+    typing_compiler: TypingCompiler = field(default_factory=DirectImportTypingCompiler)
 
     @property
     def package(self) -> str:
@@ -291,6 +290,7 @@ class MessageCompiler(ProtoContentBase):
     """Representation of a protobuf message."""
 
     source_file: FileDescriptorProto
+    typing_compiler: TypingCompiler
     parent: Union["MessageCompiler", OutputTemplate] = PLACEHOLDER
     proto_obj: DescriptorProto = PLACEHOLDER
     path: List[int] = PLACEHOLDER
@@ -321,7 +321,7 @@ class MessageCompiler(ProtoContentBase):
     @property
     def annotation(self) -> str:
         if self.repeated:
-            return f"List[{self.py_name}]"
+            return self.typing_compiler.list(self.py_name)
         return self.py_name
 
     @property
@@ -437,18 +437,6 @@ class FieldCompiler(MessageCompiler):
         return imports
 
     @property
-    def typing_imports(self) -> Set[str]:
-        imports = set()
-        annotation = self.annotation
-        if "Optional[" in annotation:
-            imports.add("Optional")
-        if "List[" in annotation:
-            imports.add("List")
-        if "Dict[" in annotation:
-            imports.add("Dict")
-        return imports
-
-    @property
     def pydantic_imports(self) -> Set[str]:
         return set()
 
@@ -460,7 +448,6 @@ class FieldCompiler(MessageCompiler):
 
     def add_imports_to(self, output_file: OutputTemplate) -> None:
         output_file.datetime_imports.update(self.datetime_imports)
-        output_file.typing_imports.update(self.typing_imports)
         output_file.pydantic_imports.update(self.pydantic_imports)
         output_file.builtins_import = output_file.builtins_import or self.use_builtins
 
@@ -490,7 +477,9 @@ class FieldCompiler(MessageCompiler):
     @property
     def mutable(self) -> bool:
         """True if the field is a mutable type, otherwise False."""
-        return self.annotation.startswith(("List[", "Dict["))
+        return self.annotation.startswith(
+            ("typing.List[", "typing.Dict[", "dict[", "list[", "Dict[", "List[")
+        )
 
     @property
     def field_type(self) -> str:
@@ -564,6 +553,7 @@ class FieldCompiler(MessageCompiler):
                 package=self.output_file.package,
                 imports=self.output_file.imports,
                 source_type=self.proto_obj.type_name,
+                typing_compiler=self.typing_compiler,
                 pydantic=self.output_file.pydantic_dataclasses,
             )
         else:
@@ -575,9 +565,9 @@ class FieldCompiler(MessageCompiler):
         if self.use_builtins:
             py_type = f"builtins.{py_type}"
         if self.repeated:
-            return f"List[{py_type}]"
+            return self.typing_compiler.list(py_type)
         if self.optional:
-            return f"Optional[{py_type}]"
+            return self.typing_compiler.optional(py_type)
         return py_type
 
 
@@ -625,11 +615,13 @@ class MapEntryCompiler(FieldCompiler):
                     source_file=self.source_file,
                     parent=self,
                     proto_obj=nested.field[0],  # key
+                    typing_compiler=self.typing_compiler,
                 ).py_type
                 self.py_v_type = FieldCompiler(
                     source_file=self.source_file,
                     parent=self,
                     proto_obj=nested.field[1],  # value
+                    typing_compiler=self.typing_compiler,
                 ).py_type
 
                 # Get proto types
@@ -647,7 +639,7 @@ class MapEntryCompiler(FieldCompiler):
 
     @property
     def annotation(self) -> str:
-        return f"Dict[{self.py_k_type}, {self.py_v_type}]"
+        return self.typing_compiler.dict(self.py_k_type, self.py_v_type)
 
     @property
     def repeated(self) -> bool:
@@ -704,7 +696,6 @@ class ServiceCompiler(ProtoContentBase):
     def __post_init__(self) -> None:
         # Add service to output file
         self.output_file.services.append(self)
-        self.output_file.typing_imports.add("Dict")
         super().__post_init__()  # check for unset fields
 
     @property
@@ -727,28 +718,6 @@ class ServiceMethodCompiler(ProtoContentBase):
         # Add method to service
         self.parent.methods.append(self)
 
-        # Check for imports
-        # Separate if calls to ensure we always call both, since these
-        # trigger addition of import.
-        # This is needed since otherwise these are only called _after_ imports
-        # have been looped over in the template.
-        if "Optional" in self.py_input_message_type:
-            self.output_file.typing_imports.add("Optional")
-        if "Optional" in self.py_output_message_type:
-            self.output_file.typing_imports.add("Optional")
-
-        # Check for Async imports
-        if self.client_streaming:
-            self.output_file.typing_imports.add("AsyncIterable")
-            self.output_file.typing_imports.add("Iterable")
-            self.output_file.typing_imports.add("Union")
-
-        # Required by both client and server
-        if self.client_streaming or self.server_streaming:
-            self.output_file.typing_imports.add("AsyncIterator")
-
-        # add imports required for request arguments timeout, deadline and metadata
-        self.output_file.typing_imports.add("Optional")
         self.output_file.imports_type_checking_only.add("import grpclib.server")
         self.output_file.imports_type_checking_only.add(
             "from aristaproto.grpc.grpclib_client import MetadataLike"
@@ -814,6 +783,7 @@ class ServiceMethodCompiler(ProtoContentBase):
             package=self.output_file.package,
             imports=self.output_file.imports,
             source_type=self.proto_obj.input_type,
+            typing_compiler=self.output_file.typing_compiler,
             unwrap=False,
             pydantic=self.output_file.pydantic_dataclasses,
         ).strip('"')
@@ -843,6 +813,7 @@ class ServiceMethodCompiler(ProtoContentBase):
             package=self.output_file.package,
             imports=self.output_file.imports,
             source_type=self.proto_obj.output_type,
+            typing_compiler=self.output_file.typing_compiler,
             unwrap=False,
             pydantic=self.output_file.pydantic_dataclasses,
         ).strip('"')
