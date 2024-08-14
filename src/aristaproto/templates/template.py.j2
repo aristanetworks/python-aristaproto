@@ -135,6 +135,10 @@ class {{ service.py_name }}Stub(aristaproto.ServiceStub):
 {{ method.comment }}
 
         {% endif %}
+        {% if method.proto_obj.options.deprecated %}
+        warnings.warn("{{ service.py_name }}.{{ method.py_name }} is deprecated", DeprecationWarning)
+
+        {% endif %}
         {% if method.server_streaming %}
             {% if method.client_streaming %}
         async for response in self._stream_stream(
