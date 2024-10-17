@@ -29,7 +29,6 @@ instantiating field `A` with parent message `B` should add a
 reference to `A` to `B`'s `fields` attribute.
 """
 
-
 import builtins
 import re
 import textwrap

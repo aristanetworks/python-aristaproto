@@ -1064,9 +1064,9 @@ class EnumDescriptorProto(aristaproto.Message):
     name: str = aristaproto.string_field(1)
     value: List["EnumValueDescriptorProto"] = aristaproto.message_field(2)
     options: "EnumOptions" = aristaproto.message_field(3)
-    reserved_range: List[
-        "EnumDescriptorProtoEnumReservedRange"
-    ] = aristaproto.message_field(4)
+    reserved_range: List["EnumDescriptorProtoEnumReservedRange"] = (
+        aristaproto.message_field(4)
+    )
     """
     Range of reserved numeric values. Reserved numeric values may not be used
      by enum values in the same enum declaration. Reserved ranges may not
@@ -1688,9 +1688,9 @@ class FeatureSetDefaults(aristaproto.Message):
      for the closest matching edition, followed by proto merges.
     """
 
-    defaults: List[
-        "FeatureSetDefaultsFeatureSetEditionDefault"
-    ] = aristaproto.message_field(1)
+    defaults: List["FeatureSetDefaultsFeatureSetEditionDefault"] = (
+        aristaproto.message_field(1)
+    )
     minimum_edition: "Edition" = aristaproto.enum_field(4)
     """
     The minimum supported edition (inclusive) when this was constructed.
