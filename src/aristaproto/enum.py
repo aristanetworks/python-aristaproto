@@ -1,6 +1,5 @@
 from __future__ import annotations
 
-import sys
 from enum import (
     EnumMeta,
     IntEnum,
