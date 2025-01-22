@@ -5,6 +5,8 @@ updates:
   - package-ecosystem: "pip"
     directories:
       - "/"
+    schedule:
+      interval: "daily"
     groups:
       prod:
         dependency-type: "production"
@@ -18,5 +20,7 @@ updates:
   # Maintain dependencies for GitHub Actions
   - package-ecosystem: "github-actions"
     directory: "/"
+    schedule:
+      interval: "daily"
     commit-message:
       prefix: "CI: "
