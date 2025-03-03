@@ -3,18 +3,18 @@ ci:
 
 repos:
   - repo: https://github.com/pycqa/isort
-    rev: 5.11.5
+    rev: 6.0.1
     hooks:
       - id: isort
 
   - repo: https://github.com/psf/black
-    rev: 23.1.0
+    rev: 25.1.0
     hooks:
       - id: black
         args: ["--target-version", "py310"]
 
   - repo: https://github.com/PyCQA/doc8
-    rev: 0.10.1
+    rev: v1.1.2
     hooks:
       - id: doc8
         additional_dependencies:
