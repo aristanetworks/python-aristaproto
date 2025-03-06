@@ -29,7 +29,6 @@ instantiating field `A` with parent message `B` should add a
 reference to `A` to `B`'s `fields` attribute.
 """
 
-
 import builtins
 import re
 import textwrap
@@ -729,6 +728,12 @@ class ServiceMethodCompiler(ProtoContentBase):
         self.parent.methods.append(self)
 
         # Check for imports
+        # Separate if calls to ensure we always call both, since these
+        # trigger addition of import.
+        # This is needed since otherwise these are only called _after_ imports
+        # have been looped over in the template.
+        if "Optional" in self.py_input_message_type:
+            self.output_file.typing_imports.add("Optional")
         if "Optional" in self.py_output_message_type:
             self.output_file.typing_imports.add("Optional")
 
