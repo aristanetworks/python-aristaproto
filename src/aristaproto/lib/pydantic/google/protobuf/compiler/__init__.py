@@ -53,9 +53,9 @@ class CodeGeneratorRequest(aristaproto.Message):
     parameter: str = aristaproto.string_field(2)
     """The generator parameter passed on the command-line."""
 
-    proto_file: List[
-        "aristaproto_lib_pydantic_google_protobuf.FileDescriptorProto"
-    ] = aristaproto.message_field(15)
+    proto_file: List["aristaproto_lib_pydantic_google_protobuf.FileDescriptorProto"] = (
+        aristaproto.message_field(15)
+    )
     """
     FileDescriptorProtos for all files in files_to_generate and everything
      they import.  The files will appear in topological order, so each file
