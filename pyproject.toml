@@ -1,6 +1,6 @@
 [tool.poetry]
 name = "aristaproto"
-version = "0.1.2"
+version = "0.1.3"
 description = "Arista Protobuf / Python gRPC bindings generator & library"
 authors = ["Arista Networks <ansible@arista.com>"]
 readme = "README.md"
@@ -111,7 +111,7 @@ cmd = "black . --check --diff"
 help = "Check if code style is correct"
 
 [tool.isort]
-py_version = 37
+py_version = 39
 profile = "black"
 force_single_line = false
 combine_as_imports = true
@@ -121,7 +121,7 @@ force_grid_wrap = 2
 src_paths = ["src", "tests"]
 
 [tool.black]
-target-version = ['py37']
+target-version = ['py39']
 
 [tool.doc8]
 paths = ["docs"]
