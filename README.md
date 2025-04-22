@@ -2,7 +2,7 @@
 
 This was originally forked from <https://github.com/danielgtaylor/python-betterproto> @ [b8a091ae7055dd949d193695a06c9536ad51eea8](https://github.com/danielgtaylor/python-betterproto/commit/b8a091ae7055dd949d193695a06c9536ad51eea8).
 
-Afterwards commits up to `1f88b67eeb9871d33da154fd2c859b9d1aed62c1` on `python-betterproto` have been cherry-picked.
+Afterwards, commits up to (and including) `124613f55fa8ff62a460e1ad33c5c78723b703a0` on `python-betterproto` have been cherry-picked.
 
 Changes in this project compared with the base project:
 
