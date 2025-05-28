@@ -8,7 +8,6 @@ from typing import (
     Dict,
     List,
 )
-from unittest.mock import ANY
 
 import cachelib
 
@@ -55,6 +54,11 @@ class Complex(aristaproto.Message):
     mapping: Dict[str, "google.Any"] = aristaproto.map_field(
         7, aristaproto.TYPE_STRING, aristaproto.TYPE_MESSAGE
     )
+
+
+class AristaprotoEnum(aristaproto.Enum):
+    UNSPECIFIED = 0
+    ONE = 1
 
 
 def complex_msg():
@@ -201,3 +205,11 @@ def test_message_can_be_cached():
             .string_value
             == "world"
         )
+
+
+def test_pickle_enum():
+    enum = AristaprotoEnum.ONE
+    assert unpickled(enum) == enum
+
+    enum = AristaprotoEnum.UNSPECIFIED
+    assert unpickled(enum) == enum

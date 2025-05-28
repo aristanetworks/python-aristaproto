@@ -1,7 +1,5 @@
 import datetime
 
-import pytest
-
 import aristaproto
 from tests.output_aristaproto.oneof_default_value_serialization import (
     Message,

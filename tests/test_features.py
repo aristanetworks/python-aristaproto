@@ -1,9 +1,5 @@
 import json
 import sys
-from copy import (
-    copy,
-    deepcopy,
-)
 from dataclasses import dataclass
 from datetime import (
     datetime,
@@ -621,9 +617,7 @@ iso_candidates = """2009-12-12T12:34
 2010-02-18T16:00:00.23334444
 2010-02-18T16:00:00,2283
 2009-05-19 143922
-2009-05-19 1439""".split(
-    "\n"
-)
+2009-05-19 1439""".split("\n")
 
 
 def test_iso_datetime():

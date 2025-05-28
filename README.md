@@ -2,7 +2,7 @@
 
 This was originally forked from <https://github.com/danielgtaylor/python-betterproto> @ [b8a091ae7055dd949d193695a06c9536ad51eea8](https://github.com/danielgtaylor/python-betterproto/commit/b8a091ae7055dd949d193695a06c9536ad51eea8).
 
-Afterwards commits up to `1f88b67eeb9871d33da154fd2c859b9d1aed62c1` on `python-betterproto` have been cherry-picked.
+Afterwards, commits up to (and including) `124613f55fa8ff62a460e1ad33c5c78723b703a0` on `python-betterproto`, have been cherry-picked.
 
 Changes in this project compared with the base project:
 
@@ -361,6 +361,51 @@ swap the dataclass implementation from the builtin python dataclass to the
 pydantic dataclass. You must have pydantic as a dependency in your project for
 this to work.
 
+## Configuration typing imports
+
+By default typing types will be imported directly from typing.  This sometimes can lead to issues in generation if types that are being generated conflict with the name.  In this case you can configure the way types are imported from 3 different options:
+
+### Direct
+```
+protoc -I . --python_aristaproto_opt=typing.direct --python_aristaproto_out=lib example.proto
+```
+this configuration is the default, and will import types as follows:
+```
+from typing import (
+  List,
+  Optional,
+  Union
+)
+...
+value: List[str] = []
+value2: Optional[str] = None
+value3: Union[str, int] = 1
+```
+### Root
+```
+protoc -I . --python_aristaproto_opt=typing.root --python_aristaproto_out=lib example.proto
+```
+this configuration loads the root typing module, and then access the types off of it directly:
+```
+import typing
+...
+value: typing.List[str] = []
+value2: typing.Optional[str] = None
+value3: typing.Union[str, int] = 1
+```
+
+### 310
+```
+protoc -I . --python_aristaproto_opt=typing.310 --python_aristaproto_out=lib example.proto
+```
+this configuration avoid loading typing all together if possible and uses the python 3.10 pattern:
+```
+...
+value: list[str] = []
+value2: str | None = None
+value3: str | int = 1
+```
+
 ## Development
 
 ### Requirements
@@ -438,7 +483,7 @@ poe full-test
 
 ### (Re)compiling Google Well-known Types
 
-Betterproto includes compiled versions for Google's well-known types at [src/aristaproto/lib/google](src/aristaproto/lib/google).
+Aristaproto includes compiled versions for Google's well-known types at [src/aristaproto/lib/google](src/aristaproto/lib/google).
 Be sure to regenerate these files when modifying the plugin output format, and validate by running the tests.
 
 Normally, the plugin does not compile any references to `google.protobuf`, since they are pre-compiled. To force compilation of `google.protobuf`, use the option `--custom_opt=INCLUDE_GOOGLE`.

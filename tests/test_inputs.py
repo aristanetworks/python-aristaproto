@@ -10,7 +10,6 @@ from typing import (
     Dict,
     List,
     Set,
-    Tuple,
 )
 
 import pytest

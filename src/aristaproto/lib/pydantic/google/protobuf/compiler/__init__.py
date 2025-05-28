@@ -195,9 +195,9 @@ class CodeGeneratorResponseFile(aristaproto.Message):
     content: str = aristaproto.string_field(15)
     """The file contents."""
 
-    generated_code_info: (
-        "aristaproto_lib_pydantic_google_protobuf.GeneratedCodeInfo"
-    ) = aristaproto.message_field(16)
+    generated_code_info: "aristaproto_lib_pydantic_google_protobuf.GeneratedCodeInfo" = aristaproto.message_field(
+        16
+    )
     """
     Information describing the file content being inserted. If an insertion
      point is used, this information will be appropriately offset and inserted
