@@ -57,7 +57,7 @@ class Complex(aristaproto.Message):
     )
 
 
-class BetterprotoEnum(betterproto.Enum):
+class AristaprotoEnum(aristaproto.Enum):
     UNSPECIFIED = 0
     ONE = 1
 
@@ -209,8 +209,8 @@ def test_message_can_be_cached():
 
 
 def test_pickle_enum():
-    enum = BetterprotoEnum.ONE
+    enum = AristaprotoEnum.ONE
     assert unpickled(enum) == enum
 
-    enum = BetterprotoEnum.UNSPECIFIED
+    enum = AristaprotoEnum.UNSPECIFIED
     assert unpickled(enum) == enum

@@ -4,7 +4,7 @@ from aristaproto.compile.importing import (
     get_type_reference,
     parse_source_type_name,
 )
-from betterproto.plugin.typing_compiler import DirectImportTypingCompiler
+from aristaproto.plugin.typing_compiler import DirectImportTypingCompiler
 
 
 @pytest.fixture
