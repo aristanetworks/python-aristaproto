@@ -13,6 +13,8 @@ Changes in this project compared with the base project:
 - Keep nanosecond precision for `Timestamp`.
   - Subclass `datetime` to store the original nano-second value when converting from `Timestamp` to `datetime`.
   - On conversion from the subclass of `datetime` to `Timestamp` the original nano-second value is restored.
+- Minor fixes.
+  - Escaping double-quotes in docstrings.
 
 ## Installation
 

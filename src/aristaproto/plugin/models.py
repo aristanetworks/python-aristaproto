@@ -154,7 +154,7 @@ def get_comment(
             if sci_loc.trailing_comments:
                 all_comments.append(sci_loc.trailing_comments)
 
-            lines = []
+            lines: list[str] = []
 
             for comment in all_comments:
                 lines += comment.split("\n")
@@ -171,6 +171,9 @@ def get_comment(
             # It is common for one line comments to start with a space, for example: // comment
             # We don't add this space to the generated file.
             lines = [line[1:] if line and line[0] == " " else line for line in lines]
+
+            # Escape any double-quotes to avoid interference with docstring quotes.
+            lines = [line.replace('"', '\\"') for line in lines]
 
             # This is a field, message, enum, service, or method
             if len(lines) == 1 and len(lines[0]) < 79 - indent - 6:
