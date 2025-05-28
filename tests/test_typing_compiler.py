@@ -1,5 +1,3 @@
-import pytest
-
 from aristaproto.plugin.typing_compiler import (
     DirectImportTypingCompiler,
     NoTyping310TypingCompiler,

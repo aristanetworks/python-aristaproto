@@ -1,5 +1,3 @@
-import pytest
-
 import aristaproto
 from tests.output_aristaproto.oneof_enum import (
     Move,

@@ -5,7 +5,6 @@ import sys
 
 from aristaproto.lib.google.protobuf.compiler import (
     CodeGeneratorRequest,
-    CodeGeneratorResponse,
 )
 from aristaproto.plugin.models import monkey_patch_oneof_index
 from aristaproto.plugin.parser import generate_code

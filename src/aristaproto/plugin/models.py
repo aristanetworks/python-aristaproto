@@ -47,11 +47,6 @@ from typing import (
 )
 
 import aristaproto
-from aristaproto.compile.naming import (
-    pythonize_class_name,
-    pythonize_field_name,
-    pythonize_method_name,
-)
 from aristaproto.lib.google.protobuf import (
     DescriptorProto,
     EnumDescriptorProto,
@@ -67,7 +62,6 @@ from aristaproto.lib.google.protobuf.compiler import CodeGeneratorRequest
 from .. import which_one_of
 from ..compile.importing import (
     get_type_reference,
-    parse_source_type_name,
 )
 from ..compile.naming import (
     pythonize_class_name,
@@ -450,7 +444,7 @@ class FieldCompiler(MessageCompiler):
         if self.field_wraps:
             args.append(f"wraps={self.field_wraps}")
         if self.optional:
-            args.append(f"optional=True")
+            args.append("optional=True")
         return args
 
     @property

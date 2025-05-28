@@ -40,7 +40,6 @@ from .models import (
 from .typing_compiler import (
     DirectImportTypingCompiler,
     NoTyping310TypingCompiler,
-    TypingCompiler,
     TypingImportTypingCompiler,
 )
 
@@ -100,9 +99,9 @@ def generate_code(request: CodeGeneratorRequest) -> CodeGeneratorResponse:
             request_data.output_packages[output_package_name].output = False
 
         if "pydantic_dataclasses" in plugin_options:
-            request_data.output_packages[output_package_name].pydantic_dataclasses = (
-                True
-            )
+            request_data.output_packages[
+                output_package_name
+            ].pydantic_dataclasses = True
 
         # Gather any typing generation options.
         typing_opts = [

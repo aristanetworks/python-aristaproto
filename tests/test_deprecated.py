@@ -54,7 +54,7 @@ async def test_service_with_deprecated_method():
         await stub.deprecated_func(Empty())
 
     assert len(record) == 1
-    assert str(record[0].message) == f"TestService.deprecated_func is deprecated"
+    assert str(record[0].message) == "TestService.deprecated_func is deprecated"
 
     with warnings.catch_warnings():
         warnings.simplefilter("error")

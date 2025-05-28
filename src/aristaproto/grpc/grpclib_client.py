@@ -21,9 +21,7 @@ if TYPE_CHECKING:
     from grpclib.metadata import Deadline
 
     from .._types import (
-        ST,
         IProtoMessage,
-        Message,
         T,
     )
 
