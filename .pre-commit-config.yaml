@@ -3,7 +3,7 @@ ci:
 
 repos:
   - repo: https://github.com/astral-sh/ruff-pre-commit
-    rev: v0.7.4
+    rev: v0.11.11
     hooks:
       - id: ruff-format
         args: ["--diff", "src", "tests"]
@@ -16,11 +16,3 @@ repos:
       - id: doc8
         additional_dependencies:
           - toml
-
-  # Removing since aristaproto don't use the java code and this breaks CI.
-  # - repo: https://github.com/macisamuele/language-formatters-pre-commit-hooks
-  #   rev: v2.10.0
-  #   hooks:
-  #     - id: pretty-format-java
-  #       args: [--autofix, --aosp]
-  #       files: ^.*\.java$
