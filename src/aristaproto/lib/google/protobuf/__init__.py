@@ -1,1 +1,1 @@
-from aristaproto.lib.std.google.protobuf import *
+from aristaproto.lib.std.google.protobuf import *  # noqa: F403

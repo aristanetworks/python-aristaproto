@@ -41,7 +41,7 @@ async def test_channel_receives_wrapped_type(
     await service_method(service, method_param)
 
     assert channel.requests[0]["response_type"] != Optional[type(value)]
-    assert channel.requests[0]["response_type"] == type(wrapped_value)
+    assert channel.requests[0]["response_type"] is type(wrapped_value)
 
 
 @pytest.mark.asyncio
@@ -61,4 +61,4 @@ async def test_service_unwraps_response(
     response_value = await service_method(service, method_param)
 
     assert response_value == value
-    assert type(response_value) == type(value)
+    assert type(response_value) is type(value)

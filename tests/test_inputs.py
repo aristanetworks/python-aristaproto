@@ -13,6 +13,7 @@ from typing import (
 )
 
 import pytest
+from google.protobuf.json_format import Parse
 
 import aristaproto
 from tests.inputs import config as test_input_config
@@ -23,13 +24,6 @@ from tests.util import (
     get_test_case_json_data,
     inputs_path,
 )
-
-
-# Force pure-python implementation instead of C++, otherwise imports
-# break things because we can't properly reset the symbol database.
-os.environ["PROTOCOL_BUFFERS_PYTHON_IMPLEMENTATION"] = "python"
-
-from google.protobuf.json_format import Parse
 
 
 class TestCases:
