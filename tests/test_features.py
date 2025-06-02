@@ -59,15 +59,15 @@ def test_has_field():
 
     # Is always set from parse, even if all collections are empty
     with_collections_empty = WithCollections().parse(bytes(WithCollections()))
-    assert aristaproto.serialized_on_wire(with_collections_empty) == True
+    assert aristaproto.serialized_on_wire(with_collections_empty) is True
     with_collections_list = WithCollections().parse(
         bytes(WithCollections(test_list=["a", "b", "c"]))
     )
-    assert aristaproto.serialized_on_wire(with_collections_list) == True
+    assert aristaproto.serialized_on_wire(with_collections_list) is True
     with_collections_map = WithCollections().parse(
         bytes(WithCollections(test_map={"a": "b", "c": "d"}))
     )
-    assert aristaproto.serialized_on_wire(with_collections_map) == True
+    assert aristaproto.serialized_on_wire(with_collections_map) is True
 
 
 def test_class_init():

@@ -44,4 +44,4 @@ async def test_channel_receives_wrapped_type(
 
     await service_method(service, wrapped_value)
 
-    assert channel.requests[0]["request"] == type(wrapped_value)
+    assert channel.requests[0]["request"] is type(wrapped_value)

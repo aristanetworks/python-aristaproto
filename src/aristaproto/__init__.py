@@ -42,7 +42,7 @@ from dateutil.parser import isoparse
 from typing_extensions import Self
 
 from ._types import T
-from ._version import __version__
+from ._version import __version__  # noqa: F401
 from .casing import (
     camel_case,
     safe_snake_case,

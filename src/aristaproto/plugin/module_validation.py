@@ -46,9 +46,13 @@ class ModuleValidator:
         full_line = line
         line = line.split("import", 1)[1]
         if "(" in line:
-            conditional = lambda line: ")" not in line
+
+            def conditional(line: str) -> bool:
+                return ")" not in line
         else:
-            conditional = lambda line: "\\" in line
+
+            def conditional(line: str) -> bool:
+                return "\\" in line
 
         # Remove open parenthesis if it exists.
         if "(" in line:
