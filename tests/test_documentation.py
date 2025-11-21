@@ -16,6 +16,7 @@ def test_documentation() -> None:
         ServiceBase,
         ServiceStub,
         Test,
+        Undocumented,
     )
 
     check(Test.__doc__, "message")
@@ -30,8 +31,16 @@ def test_documentation() -> None:
     tree = ast.parse(source)
     check(tree.body[0].body[2].value.value, "variant")
 
+    assert tree.body[0].body[3].targets[0].id == "Enum_Variant_Undocumented"
+    assert len(tree.body[0].body) == 4
+
     check(ServiceBase.__doc__, "service")
     check(ServiceBase.get.__doc__, "method")
+    assert ServiceBase.undocumented.__doc__ is None
 
     check(ServiceStub.__doc__, "service")
     check(ServiceStub.get.__doc__, "method")
+
+    # Check comments are missing in undocumented objects
+    assert ast.get_docstring(ast.parse(inspect.getsource(Undocumented))) is None
+    assert ast.get_docstring(ast.parse(inspect.getsource(Enum))) is None
