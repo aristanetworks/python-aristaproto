@@ -3,7 +3,7 @@ ci:
 
 repos:
   - repo: https://github.com/astral-sh/ruff-pre-commit
-    rev: v0.11.12
+    rev: v0.14.8
     hooks:
       - id: ruff-format
         args: ["--diff", "src", "tests"]
@@ -11,7 +11,7 @@ repos:
         args: ["--select", "I", "src", "tests"]
 
   - repo: https://github.com/PyCQA/doc8
-    rev: v1.1.2
+    rev: v2.0.0
     hooks:
       - id: doc8
         additional_dependencies:
