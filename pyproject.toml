@@ -60,6 +60,7 @@ extend-select = ["I"]
 [tool.ruff.lint.isort]
 combine-as-imports = true
 lines-after-imports = 2
+known-first-party = ["aristaproto", "tests"]
 
 # Dev workflow tasks
 
