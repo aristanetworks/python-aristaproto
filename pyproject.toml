@@ -54,9 +54,13 @@ rust-codec = ["betterproto-rust-codec"]
 extend-exclude = ["tests/output_*"]
 target-version = "py39"
 
+[tool.ruff.lint]
+extend-select = ["I"]
+
 [tool.ruff.lint.isort]
 combine-as-imports = true
 lines-after-imports = 2
+known-first-party = ["aristaproto", "tests"]
 
 # Dev workflow tasks
 
