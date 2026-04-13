@@ -31,6 +31,7 @@ reference to `A` to `B`'s `fields` attribute.
 
 import builtins
 import re
+import textwrap
 from dataclasses import (
     dataclass,
     field,
@@ -168,9 +169,10 @@ def get_comment(
             if lines and not lines[-1]:
                 lines.pop()  # Remove the last empty line
 
-            # It is common for one line comments to start with a space, for example: // comment
-            # We don't add this space to the generated file.
-            lines = [line.lstrip() for line in lines]
+            # SourceCodeInfo strips comment markers, but line comments commonly retain
+            # one shared leading space after `// `. Remove only common indentation so
+            # intentionally indented content inside descriptions is preserved.
+            lines = textwrap.dedent("\n".join(lines)).split("\n")
 
             # Escape any double-quotes to avoid interference with docstring quotes.
             lines = [line.replace('"', '\\"') for line in lines]

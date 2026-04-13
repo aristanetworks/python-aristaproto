@@ -1,0 +1,8 @@
+syntax = "proto3";
+
+package regression_108;
+
+// Summary:
+//   keeps one level of indentation
+//     keeps nested indentation too
+message Test {}
