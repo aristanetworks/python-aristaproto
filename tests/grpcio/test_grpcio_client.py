@@ -1,19 +1,17 @@
 import asyncio
 from typing import (
-    AsyncIterable,
     AsyncIterator,
-    Iterable,
-    Optional,
-    Union,
 )
 
 import grpc
 import pytest
 import pytest_asyncio
 
-from aristaproto.grpcio_client import (
-    MetadataLike,
-    ServiceStub,
+from tests.grpcio.service_fixtures import (
+    GeneratedStyleTestStub,
+    async_do_thing_requests,
+    async_get_thing_requests,
+    collect_get_thing_responses,
 )
 from tests.output_aristaproto.service import (
     DoThingRequest,
@@ -21,94 +19,6 @@ from tests.output_aristaproto.service import (
     GetThingRequest,
     GetThingResponse,
 )
-
-
-class HandwrittenGrpcioStub(ServiceStub):
-    async def do_thing(
-        self,
-        do_thing_request: DoThingRequest,
-        *,
-        timeout: Optional[float] = None,
-        metadata: Optional[MetadataLike] = None,
-        credentials: Optional[grpc.CallCredentials] = None,
-        wait_for_ready: Optional[bool] = None,
-    ) -> DoThingResponse:
-        return await self._unary_unary(
-            "/service.Test/DoThing",
-            do_thing_request,
-            DoThingResponse,
-            timeout=timeout,
-            metadata=metadata,
-            credentials=credentials,
-            wait_for_ready=wait_for_ready,
-        )
-
-    async def do_many_things(
-        self,
-        do_thing_request_iterator: Union[
-            AsyncIterable[DoThingRequest],
-            Iterable[DoThingRequest],
-        ],
-        *,
-        timeout: Optional[float] = None,
-        metadata: Optional[MetadataLike] = None,
-        credentials: Optional[grpc.CallCredentials] = None,
-        wait_for_ready: Optional[bool] = None,
-    ) -> DoThingResponse:
-        return await self._stream_unary(
-            "/service.Test/DoManyThings",
-            do_thing_request_iterator,
-            DoThingRequest,
-            DoThingResponse,
-            timeout=timeout,
-            metadata=metadata,
-            credentials=credentials,
-            wait_for_ready=wait_for_ready,
-        )
-
-    async def get_thing_versions(
-        self,
-        get_thing_request: GetThingRequest,
-        *,
-        timeout: Optional[float] = None,
-        metadata: Optional[MetadataLike] = None,
-        credentials: Optional[grpc.CallCredentials] = None,
-        wait_for_ready: Optional[bool] = None,
-    ) -> AsyncIterator[GetThingResponse]:
-        async for response in self._unary_stream(
-            "/service.Test/GetThingVersions",
-            get_thing_request,
-            GetThingResponse,
-            timeout=timeout,
-            metadata=metadata,
-            credentials=credentials,
-            wait_for_ready=wait_for_ready,
-        ):
-            yield response
-
-    async def get_different_things(
-        self,
-        get_thing_request_iterator: Union[
-            AsyncIterable[GetThingRequest],
-            Iterable[GetThingRequest],
-        ],
-        *,
-        timeout: Optional[float] = None,
-        metadata: Optional[MetadataLike] = None,
-        credentials: Optional[grpc.CallCredentials] = None,
-        wait_for_ready: Optional[bool] = None,
-    ) -> AsyncIterator[GetThingResponse]:
-        async for response in self._stream_stream(
-            "/service.Test/GetDifferentThings",
-            get_thing_request_iterator,
-            GetThingRequest,
-            GetThingResponse,
-            timeout=timeout,
-            metadata=metadata,
-            credentials=credentials,
-            wait_for_ready=wait_for_ready,
-        ):
-            yield response
 
 
 class RecordingGrpcioService:
@@ -194,28 +104,10 @@ async def grpcio_service():
     await server.start()
     channel = grpc.aio.insecure_channel(f"127.0.0.1:{port}")
     try:
-        yield HandwrittenGrpcioStub(channel), service
+        yield GeneratedStyleTestStub(channel), service
     finally:
         await channel.close()
         await server.stop(grace=None)
-
-
-async def async_do_thing_requests(
-    names: Iterable[str],
-) -> AsyncIterator[DoThingRequest]:
-    for name in names:
-        yield DoThingRequest(name=name)
-
-
-async def async_get_thing_requests(
-    names: Iterable[str],
-) -> AsyncIterator[GetThingRequest]:
-    for name in names:
-        yield GetThingRequest(name=name)
-
-
-async def collect(iterator: AsyncIterator[GetThingResponse]):
-    return [message async for message in iterator]
 
 
 def metadata_value(service: RecordingGrpcioService, key: str) -> str:
@@ -235,7 +127,9 @@ async def test_unary_unary(grpcio_service):
 async def test_unary_stream(grpcio_service):
     client, _service = grpcio_service
 
-    responses = await collect(client.get_thing_versions(GetThingRequest(name="switch")))
+    responses = await collect_get_thing_responses(
+        client.get_thing_versions(GetThingRequest(name="switch"))
+    )
 
     assert responses == [
         GetThingResponse(name="switch", version=1),
@@ -267,7 +161,7 @@ async def test_stream_unary_accepts_sync_and_async_iterables(
 async def test_stream_stream_accepts_sync_iterables(grpcio_service):
     client, _service = grpcio_service
 
-    responses = await collect(
+    responses = await collect_get_thing_responses(
         client.get_different_things(
             [GetThingRequest(name="leaf"), GetThingRequest(name="spine")]
         )
@@ -283,7 +177,7 @@ async def test_stream_stream_accepts_sync_iterables(grpcio_service):
 async def test_stream_stream_accepts_async_iterables(grpcio_service):
     client, _service = grpcio_service
 
-    responses = await collect(
+    responses = await collect_get_thing_responses(
         client.get_different_things(async_get_thing_requests(["leaf", "spine"]))
     )
 
