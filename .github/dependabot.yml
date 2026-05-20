@@ -2,7 +2,7 @@
 version: 2
 updates:
   # Maintain dependencies for Python
-  - package-ecosystem: "pip"
+  - package-ecosystem: "uv"
     directories:
       - "/"
     schedule:

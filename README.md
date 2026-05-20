@@ -7,7 +7,7 @@ Afterwards, commits up to (and including) `124613f55fa8ff62a460e1ad33c5c78723b70
 Changes in this project compared with the base project:
 
 - Renamed to `aristaproto`.
-- Cut support for Python < 3.9.
+- Cut support for Python < 3.10.
 - Updating various CI actions and dependencies.
 - Merged docs from multiple `rst` files to MarkDown.
 - Keep nanosecond precision for `Timestamp`.
@@ -412,36 +412,36 @@ value3: str | int = 1
 
 ### Requirements
 
-- Python (3.9 or higher)
+- Python (3.10 or higher)
 
-- [poetry](https://python-poetry.org/docs/#installation)
+- [uv](https://docs.astral.sh/uv/)
   *Needed to install dependencies in a virtual environment*
 
 - [poethepoet](https://github.com/nat-n/poethepoet) for running development tasks as defined in pyproject.toml
-  - Can be installed to your host environment via `pip install poethepoet` then executed as simple `poe`
-  - or run from the poetry venv as `poetry run poe`
+  - Installed into the project environment by `uv sync`
+  - Run task commands with `uv run poe`
 
 ### Setup
 
 ```sh
 # Get set up with the virtual env & dependencies
-poetry install -E compiler
+uv sync --extra compiler --all-groups
 
-# Activate the poetry environment
-poetry shell
+# Run commands in the uv environment
+uv run python
 ```
 
 ### Code style
 
-This project enforces [black](https://github.com/psf/black) python code formatting.
+This project enforces [ruff](https://docs.astral.sh/ruff/) python code formatting.
 
 Before committing changes run:
 
 ```sh
-poe format
+uv run poe format
 ```
 
-To avoid merge conflicts later, non-black formatted python code will fail in CI.
+To avoid merge conflicts later, non-ruff formatted python code will fail in CI.
 
 ### Tests
 
@@ -472,15 +472,15 @@ Here's how to run the tests.
 
 ```sh
 # Generate assets from sample .proto files required by the tests
-poe generate
+uv run poe generate
 # Run the tests
-poe test
+uv run poe test
 ```
 
 To run tests as they are run in CI (with tox) run:
 
 ```sh
-poe full-test
+uv run poe full-test
 ```
 
 ### (Re)compiling Google Well-known Types
