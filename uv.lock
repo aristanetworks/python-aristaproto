@@ -39,8 +39,6 @@ name = "aristaproto"
 version = "2.0.0.dev0"
 source = { editable = "." }
 dependencies = [
-    { name = "grpcio" },
-    { name = "grpclib" },
     { name = "python-dateutil" },
     { name = "typing-extensions" },
 ]
@@ -50,6 +48,12 @@ compiler = [
     { name = "jinja2" },
     { name = "ruff" },
 ]
+grpcio = [
+    { name = "grpcio" },
+]
+grpclib = [
+    { name = "grpclib" },
+]
 rust-codec = [
     { name = "betterproto-rust-codec" },
 ]
@@ -58,7 +62,9 @@ rust-codec = [
 dev = [
     { name = "asv" },
     { name = "bpython" },
+    { name = "grpcio" },
     { name = "grpcio-tools" },
+    { name = "grpclib" },
     { name = "jinja2" },
     { name = "mypy" },
     { name = "pre-commit" },
@@ -68,6 +74,8 @@ dev = [
 ]
 test = [
     { name = "cachelib" },
+    { name = "grpcio" },
+    { name = "grpclib" },
     { name = "poethepoet" },
     { name = "protobuf" },
     { name = "pydantic" },
@@ -81,20 +89,22 @@ test = [
 [package.metadata]
 requires-dist = [
     { name = "betterproto-rust-codec", marker = "extra == 'rust-codec'", specifier = "==0.1.1" },
-    { name = "grpcio", specifier = ">=1.54.2,<2.0" },
-    { name = "grpclib", specifier = ">=0.4.1,<0.5.0" },
+    { name = "grpcio", marker = "extra == 'grpcio'", specifier = ">=1.54.2,<2.0" },
+    { name = "grpclib", marker = "extra == 'grpclib'", specifier = ">=0.4.1,<0.5.0" },
     { name = "jinja2", marker = "extra == 'compiler'", specifier = ">=3.0.3" },
     { name = "python-dateutil", specifier = ">=2.8,<3.0" },
     { name = "ruff", marker = "extra == 'compiler'", specifier = ">=0.11.11" },
     { name = "typing-extensions", specifier = ">=4.7.1,<5.0" },
 ]
-provides-extras = ["compiler", "rust-codec"]
+provides-extras = ["grpcio", "grpclib", "compiler", "rust-codec"]
 
 [package.metadata.requires-dev]
 dev = [
     { name = "asv", specifier = ">=0.4.2,<0.7.0" },
     { name = "bpython", specifier = ">=0.19,<0.27" },
+    { name = "grpcio", specifier = ">=1.54.2,<2.0" },
     { name = "grpcio-tools", specifier = ">=1.54.2,<2.0" },
+    { name = "grpclib", specifier = ">=0.4.1,<0.5.0" },
     { name = "jinja2", specifier = ">=3.0.3" },
     { name = "mypy", specifier = ">=1.11.2,<2.0" },
     { name = "pre-commit", specifier = ">=2.17,<5.0" },
@@ -104,6 +114,8 @@ dev = [
 ]
 test = [
     { name = "cachelib", specifier = ">=0.10.2,<0.14.0" },
+    { name = "grpcio", specifier = ">=1.54.2,<2.0" },
+    { name = "grpclib", specifier = ">=0.4.1,<0.5.0" },
     { name = "poethepoet", specifier = ">=0.9.0" },
     { name = "protobuf", specifier = ">=4,<7" },
     { name = "pydantic", specifier = ">=2.0,<3" },

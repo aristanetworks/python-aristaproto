@@ -15,8 +15,8 @@ def check(generated_doc: str, type: str) -> None:
 
 @pytest.mark.parametrize(
     "output_package",
-    ["tests.output_aristaproto", "tests.output_aristaproto_grpcio"],
-    ids=["grpclib", "grpcio"],
+    ["tests.output_aristaproto", "tests.output_aristaproto_grpclib"],
+    ids=["grpcio", "grpclib"],
 )
 def test_documentation(output_package: str) -> None:
     module = importlib.import_module(f"{output_package}.documentation")

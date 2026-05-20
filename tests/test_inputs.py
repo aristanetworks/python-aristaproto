@@ -64,8 +64,8 @@ test_cases = TestCases(
 )
 
 plugin_output_packages = {
-    "grpclib": "tests.output_aristaproto",
-    "grpcio": "tests.output_aristaproto_grpcio",
+    "grpcio": "tests.output_aristaproto",
+    "grpclib": "tests.output_aristaproto_grpclib",
 }
 reference_output_package = "tests.output_reference"
 

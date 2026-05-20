@@ -1,6 +1,6 @@
 import inspect
 
-from tests.output_aristaproto.service_uppercase import TestStub
+from tests.output_aristaproto_grpclib.service_uppercase import TestStub
 
 
 def test_parameters():

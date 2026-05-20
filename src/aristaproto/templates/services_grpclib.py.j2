@@ -1,5 +1,5 @@
 {% for service in output_file.services %}
-class {{ service.py_name }}Stub(aristaproto.ServiceStub):
+class {{ service.py_name }}Stub(ServiceStub):
     {% if service.comment %}
 {{ service.comment }}
 

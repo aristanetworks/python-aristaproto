@@ -45,12 +45,29 @@ from pydantic import {% for i in output_file.pydantic_imports|sort %}{{ i }}{% i
 import aristaproto
 {% if output_file.services %}
 {% if output_file.transport == "grpcio" %}
-import grpc
+try:
+    import grpc
+except ModuleNotFoundError as exc:
+    if exc.name != "grpc":
+        raise
+    raise ModuleNotFoundError(
+        "grpcio transport support requires the grpcio extra. "
+        'Install it with `pip install "aristaproto[grpcio]"`.'
+    ) from exc
 from aristaproto.grpcio_client import MetadataLike, ServiceStub
 from aristaproto.grpcio_server import ServiceBase
 {% else %}
+try:
+    import grpclib
+except ModuleNotFoundError as exc:
+    if exc.name != "grpclib":
+        raise
+    raise ModuleNotFoundError(
+        "grpclib transport support requires the grpclib extra. "
+        'Install it with `pip install "aristaproto[grpclib]"`.'
+    ) from exc
+from aristaproto.grpc.grpclib_client import ServiceStub
 from aristaproto.grpc.grpclib_server import ServiceBase
-import grpclib
 {% endif %}
 {% endif %}
 

@@ -11,7 +11,7 @@ from tests.util import (
     get_directories,
     inputs_path,
     output_path_aristaproto,
-    output_path_aristaproto_grpcio,
+    output_path_aristaproto_grpclib,
     output_path_aristaproto_pydantic,
     output_path_reference,
     protoc,
@@ -54,11 +54,11 @@ async def generate(whitelist: Set[str], verbose: bool):
         selected_test_cases.append((test_case_input_path, test_case_name))
 
     os.makedirs(output_path_aristaproto, exist_ok=True)
-    os.makedirs(output_path_aristaproto_grpcio, exist_ok=True)
+    os.makedirs(output_path_aristaproto_grpclib, exist_ok=True)
     os.makedirs(output_path_aristaproto_pydantic, exist_ok=True)
 
     clear_directory(output_path_aristaproto)
-    clear_directory(output_path_aristaproto_grpcio)
+    clear_directory(output_path_aristaproto_grpclib)
     clear_directory(output_path_aristaproto_pydantic)
 
     generation_tasks = [
@@ -93,7 +93,7 @@ async def generate_test_case_output(
 
     test_case_output_path_reference = output_path_reference.joinpath(test_case_name)
     test_case_output_path_aristaproto = output_path_aristaproto
-    test_case_output_path_aristaproto_grpcio = output_path_aristaproto_grpcio
+    test_case_output_path_aristaproto_grpclib = output_path_aristaproto_grpclib
     test_case_output_path_aristaproto_pyd = output_path_aristaproto_pydantic
 
     os.makedirs(test_case_output_path_reference, exist_ok=True)
@@ -103,16 +103,16 @@ async def generate_test_case_output(
     (
         (ref_out, ref_err, ref_code),
         (plg_out, plg_err, plg_code),
-        (plg_out_grpcio, plg_err_grpcio, plg_code_grpcio),
+        (plg_out_grpclib, plg_err_grpclib, plg_code_grpclib),
         (plg_out_pyd, plg_err_pyd, plg_code_pyd),
     ) = await asyncio.gather(
         protoc(test_case_input_path, test_case_output_path_reference, True),
         protoc(test_case_input_path, test_case_output_path_aristaproto, False),
         protoc(
             test_case_input_path,
-            test_case_output_path_aristaproto_grpcio,
+            test_case_output_path_aristaproto_grpclib,
             False,
-            plugin_options=("transport=grpcio",),
+            plugin_options=("transport=grpclib",),
         ),
         protoc(
             test_case_input_path, test_case_output_path_aristaproto_pyd, False, True
@@ -157,25 +157,25 @@ async def generate_test_case_output(
             sys.stderr.buffer.write(plg_err)
             sys.stderr.buffer.flush()
 
-    if plg_code_grpcio == 0:
+    if plg_code_grpclib == 0:
         print(
-            f"\033[31;1;4mGenerated plugin grpcio output for {test_case_name!r}\033[0m"
+            f"\033[31;1;4mGenerated plugin grpclib output for {test_case_name!r}\033[0m"
         )
     else:
         print(
-            f"\033[31;1;4mFailed to generate plugin grpcio output for {test_case_name!r}\033[0m"
+            f"\033[31;1;4mFailed to generate plugin grpclib output for {test_case_name!r}\033[0m"
         )
-        print(plg_err_grpcio.decode())
+        print(plg_err_grpclib.decode())
 
     if verbose:
-        if plg_out_grpcio:
-            print("Plugin grpcio stdout:")
-            sys.stdout.buffer.write(plg_out_grpcio)
+        if plg_out_grpclib:
+            print("Plugin grpclib stdout:")
+            sys.stdout.buffer.write(plg_out_grpclib)
             sys.stdout.buffer.flush()
 
-        if plg_err_grpcio:
-            print("Plugin grpcio stderr:")
-            sys.stderr.buffer.write(plg_err_grpcio)
+        if plg_err_grpclib:
+            print("Plugin grpclib stderr:")
+            sys.stderr.buffer.write(plg_err_grpclib)
             sys.stderr.buffer.flush()
 
     if plg_code_pyd == 0:
@@ -199,7 +199,7 @@ async def generate_test_case_output(
             sys.stderr.buffer.write(plg_err_pyd)
             sys.stderr.buffer.flush()
 
-    return max(ref_code, plg_code, plg_code_grpcio, plg_code_pyd)
+    return max(ref_code, plg_code, plg_code_grpclib, plg_code_pyd)
 
 
 HELP = "\n".join(

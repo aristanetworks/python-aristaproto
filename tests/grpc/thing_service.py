@@ -3,7 +3,7 @@ from typing import Dict
 import grpclib
 import grpclib.server
 
-from tests.output_aristaproto.service import (
+from tests.output_aristaproto_grpclib.service import (
     DoThingRequest,
     DoThingResponse,
     GetThingRequest,

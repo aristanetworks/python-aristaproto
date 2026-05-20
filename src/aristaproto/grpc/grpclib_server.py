@@ -5,8 +5,17 @@ from typing import (
     Callable,
 )
 
-import grpclib
-import grpclib.server
+
+try:
+    import grpclib
+    import grpclib.server
+except ModuleNotFoundError as exc:
+    if exc.name != "grpclib":
+        raise
+    raise ModuleNotFoundError(
+        "grpclib transport support requires the grpclib extra. "
+        'Install it with `pip install "aristaproto[grpclib]"`.'
+    ) from exc
 
 
 class ServiceBase(ABC):

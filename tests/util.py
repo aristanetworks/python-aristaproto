@@ -26,7 +26,7 @@ root_path = Path(__file__).resolve().parent
 inputs_path = root_path.joinpath("inputs")
 output_path_reference = root_path.joinpath("output_reference")
 output_path_aristaproto = root_path.joinpath("output_aristaproto")
-output_path_aristaproto_grpcio = root_path.joinpath("output_aristaproto_grpcio")
+output_path_aristaproto_grpclib = root_path.joinpath("output_aristaproto_grpclib")
 output_path_aristaproto_pydantic = root_path.joinpath("output_aristaproto_pydantic")
 
 

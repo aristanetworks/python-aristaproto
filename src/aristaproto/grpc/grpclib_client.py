@@ -13,7 +13,16 @@ from typing import (
     Union,
 )
 
-import grpclib.const
+
+try:
+    import grpclib.const
+except ModuleNotFoundError as exc:
+    if exc.name != "grpclib":
+        raise
+    raise ModuleNotFoundError(
+        "grpclib transport support requires the grpclib extra. "
+        'Install it with `pip install "aristaproto[grpclib]"`.'
+    ) from exc
 
 
 if TYPE_CHECKING:

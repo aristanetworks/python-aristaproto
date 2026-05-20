@@ -70,7 +70,8 @@ The following tests are automatically executed for all cases:
 
 - `pipenv run generate`
   This generates:
-  - `aristaproto/tests/output_aristaproto` &mdash; *the plugin generated python classes*
+  - `aristaproto/tests/output_aristaproto` &mdash; *the default grpcio plugin generated python classes*
+  - `aristaproto/tests/output_aristaproto_grpclib` &mdash; *the explicit legacy grpclib plugin generated python classes*
   - `aristaproto/tests/output_reference` &mdash; *reference implementation classes*
 - `pipenv run test`
 

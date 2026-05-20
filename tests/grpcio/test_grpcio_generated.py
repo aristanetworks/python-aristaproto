@@ -12,6 +12,8 @@ import grpc
 import pytest
 import pytest_asyncio
 
+from aristaproto.grpc.grpclib_client import ServiceStub as GrpclibServiceStub
+from aristaproto.grpc.grpclib_server import ServiceBase as GrpclibServiceBase
 from aristaproto.grpcio_client import ServiceStub as GrpcioServiceStub
 from aristaproto.grpcio_server import ServiceBase as GrpcioServiceBase
 from tests.inputs import config as test_input_config
@@ -22,7 +24,7 @@ from tests.util import (
 )
 
 
-GRPCIO_GENERATED_PACKAGE = "tests.output_aristaproto_grpcio"
+GRPCIO_GENERATED_PACKAGE = "tests.output_aristaproto"
 GRPCIO_SERVICE_TEST_CASES = sorted(
     test_input_config.services | {"deprecated", "documentation"}
 )
@@ -55,7 +57,6 @@ async def generated_service_module(tmp_path, reset_sys_path):
     stdout, stderr, returncode = await protoc(
         inputs_path.joinpath("service"),
         tmp_path,
-        plugin_options=("transport=grpcio",),
     )
 
     assert returncode == 0, (
@@ -97,6 +98,41 @@ def test_generated_grpcio_code_shape(
     }
     assert issubclass(module.TestStub, GrpcioServiceStub)
     assert issubclass(module.TestBase, GrpcioServiceBase)
+
+
+@pytest.mark.asyncio
+async def test_generated_grpclib_transport_option_keeps_legacy_shape(
+    tmp_path,
+    reset_sys_path,
+) -> None:
+    stdout, stderr, returncode = await protoc(
+        inputs_path.joinpath("service"),
+        tmp_path,
+        plugin_options=("transport=grpclib",),
+    )
+
+    assert returncode == 0, (
+        f"protoc failed\nstdout:\n{stdout.decode()}\nstderr:\n{stderr.decode()}"
+    )
+
+    sys.path.insert(0, str(tmp_path))
+    sys.modules.pop("service", None)
+    try:
+        module = importlib.import_module("service")
+        source = tmp_path.joinpath("service", "__init__.py").read_text()
+    finally:
+        sys.modules.pop("service", None)
+
+    assert "from aristaproto.grpc.grpclib_client import ServiceStub" in source
+    assert "from aristaproto.grpc.grpclib_server import ServiceBase" in source
+    assert "import grpclib" in source
+    assert "grpcio" not in source
+    assert "class TestStub(ServiceStub):" in source
+    assert "class TestBase(ServiceBase):" in source
+    assert "__mapping__" in source
+    assert "deadline" in inspect.signature(module.TestStub.do_thing).parameters
+    assert issubclass(module.TestStub, GrpclibServiceStub)
+    assert issubclass(module.TestBase, GrpclibServiceBase)
 
 
 @pytest.mark.parametrize("test_case_name", GRPCIO_SERVICE_TEST_CASES)

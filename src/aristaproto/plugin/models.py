@@ -275,7 +275,7 @@ class OutputTemplate:
     services: List["ServiceCompiler"] = field(default_factory=list)
     imports_type_checking_only: Set[str] = field(default_factory=set)
     pydantic_dataclasses: bool = False
-    transport: str = "grpclib"
+    transport: str = "grpcio"
     output: bool = True
     typing_compiler: TypingCompiler = field(default_factory=DirectImportTypingCompiler)
 

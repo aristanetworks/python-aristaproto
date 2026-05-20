@@ -11,7 +11,7 @@ import pytest
 
 import aristaproto.lib.google.protobuf as protobuf
 from tests.mocks import MockChannel
-from tests.output_aristaproto.googletypes_request import (
+from tests.output_aristaproto_grpclib.googletypes_request import (
     Input,
     TestStub,
 )

@@ -9,7 +9,7 @@ import pytest
 from grpclib.testing import ChannelFor
 
 from aristaproto.grpc.util.async_channel import AsyncChannel
-from tests.output_aristaproto.service import (
+from tests.output_aristaproto_grpclib.service import (
     DoThingRequest,
     DoThingResponse,
     GetThingRequest,

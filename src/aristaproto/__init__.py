@@ -49,7 +49,6 @@ from .casing import (
     snake_case,
 )
 from .enum import Enum as Enum
-from .grpc.grpclib_client import ServiceStub as ServiceStub
 from .utils import (
     classproperty,
     hybridmethod,
@@ -67,6 +66,14 @@ if sys.version_info >= (3, 10):
 else:
 
     class _types_UnionType: ...
+
+
+def __getattr__(name: str) -> Any:
+    if name == "ServiceStub":
+        from .grpc.grpclib_client import ServiceStub
+
+        return ServiceStub
+    raise AttributeError(f"module {__name__!r} has no attribute {name!r}")
 
 
 # Proto 3 data types

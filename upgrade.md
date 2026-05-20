@@ -1,8 +1,8 @@
 # Upgrade guide: aristaproto 0.x to 2.0
 
-Status: draft. The grpcio AsyncIO client and server runtimes now have generator
-support behind the explicit `transport=grpcio` option. The guide still tracks
-the migration as draft while grpcio coverage is broadened.
+Status: draft. The grpcio AsyncIO client and server runtimes are now the default
+generated service transport. The legacy grpclib generator path remains available
+behind the explicit `transport=grpclib` option during the migration window.
 
 ## What stays the same
 
@@ -13,22 +13,48 @@ the migration as draft while grpcio coverage is broadened.
 - Server implementations still implement methods such as
   `async def do_thing(self, request) -> response`.
 
+## Install extras
+
+The core package install supports message-only generated modules without either
+transport backend:
+
+```bash
+pip install aristaproto
+```
+
+Generated service modules need the runtime extra for the selected transport:
+
+```bash
+pip install "aristaproto[grpcio]"
+pip install "aristaproto[grpclib]"
+pip install "aristaproto[compiler,grpcio]"
+```
+
+If a generated service module is imported without its selected transport extra,
+the import error points to `aristaproto[grpcio]` or `aristaproto[grpclib]`.
+
 ## Regenerate service code
 
-For the grpcio transport, regenerate generated modules with the grpcio transport
-option:
+For the default grpcio transport, regenerate generated modules without a
+transport option:
 
 ```bash
 python -m grpc_tools.protoc \
   -I path/to/protos \
   --python_aristaproto_out=path/to/output \
-  --python_aristaproto_opt=transport=grpcio \
   path/to/protos/*.proto
 ```
 
 The legacy grpclib transport remains available during the migration window and
-is still the default. Use `transport=grpclib` explicitly if you want that choice
-recorded in build scripts.
+must be selected explicitly:
+
+```bash
+python -m grpc_tools.protoc \
+  -I path/to/protos \
+  --python_aristaproto_out=path/to/output \
+  --python_aristaproto_opt=transport=grpclib \
+  path/to/protos/*.proto
+```
 
 ## Client changes
 
@@ -235,5 +261,7 @@ iterables from generated grpcio clients.
 - grpclib stream objects are not exposed to generated-style service methods.
 - Custom code that directly depends on generated `__mapping__` needs to switch
   to grpcio server registration.
-- The grpcio transport is opt-in during the migration window; generated service
-  modules continue to use grpclib unless `transport=grpcio` is passed.
+- The grpcio transport is the default for generated service modules.
+- The grpclib transport remains available with explicit `transport=grpclib`.
+- Transport backends are optional extras. Message-only consumers do not need
+  either grpcio or grpclib installed.

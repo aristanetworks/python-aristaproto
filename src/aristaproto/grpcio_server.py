@@ -13,7 +13,16 @@ from typing import (
     Type,
 )
 
-import grpc
+
+try:
+    import grpc
+except ModuleNotFoundError as exc:
+    if exc.name != "grpc":
+        raise
+    raise ModuleNotFoundError(
+        "grpcio transport support requires the grpcio extra. "
+        'Install it with `pip install "aristaproto[grpcio]"`.'
+    ) from exc
 
 
 if TYPE_CHECKING:

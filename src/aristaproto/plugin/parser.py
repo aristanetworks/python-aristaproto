@@ -87,7 +87,7 @@ def generate_code(request: CodeGeneratorRequest) -> CodeGeneratorResponse:
     ]
     if len(transport_opts) > 1:
         raise ValueError("Multiple transport options provided")
-    transport = transport_opts[0] if transport_opts else "grpclib"
+    transport = transport_opts[0] if transport_opts else "grpcio"
     if transport not in {"grpclib", "grpcio"}:
         raise ValueError(f"Unsupported transport option: {transport}")
 

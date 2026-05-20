@@ -5,7 +5,7 @@ from typing import (
 import pytest
 from grpclib.testing import ChannelFor
 
-from tests.output_aristaproto.example_service import (
+from tests.output_aristaproto_grpclib.example_service import (
     ExampleRequest,
     ExampleResponse,
     TestBase,

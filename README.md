@@ -18,14 +18,23 @@ Changes in this project compared with the base project:
 
 ## Installation
 
-First, install the package. Note that the `[compiler]` feature flag tells it to install extra dependencies only needed by the `protoc` plugin:
+First, install the package. The core install is enough for generated
+message-only modules. Generated service modules use grpcio by default, so install
+the matching transport extra when you generate or consume service code. The
+`[compiler]` extra installs dependencies only needed by the `protoc` plugin:
 
 ```sh
-# Install both the library and compiler
-pip install "aristaproto[compiler]"
-
-# Install just the library (to use the generated code output)
+# Install the core message runtime
 pip install aristaproto
+
+# Install the default grpcio service runtime
+pip install "aristaproto[grpcio]"
+
+# Install both the compiler and default service runtime
+pip install "aristaproto[compiler,grpcio]"
+
+# Install the legacy grpclib runtime
+pip install "aristaproto[grpclib]"
 ```
 
 ## Getting Started
@@ -105,7 +114,10 @@ Greeting(message="Hey!")
 
 ### Async gRPC Support
 
-The generated Protobuf `Message` classes are compatible with [grpclib](https://github.com/vmagamedov/grpclib) so you are free to use it if you like. That said, this project also includes support for async gRPC stub generation with better static type checking and code completion support. It is enabled by default.
+The generated Protobuf `Message` classes are transport-independent. Generated
+service stubs use grpcio AsyncIO by default. The legacy grpclib transport is
+still available during the migration window with
+`--python_aristaproto_opt=transport=grpclib`.
 
 Given an example service definition:
 
@@ -145,22 +157,20 @@ A client can be implemented as follows:
 ```python
 import asyncio
 import echo
-
-from grpclib.client import Channel
+import grpc
 
 
 async def main():
-    channel = Channel(host="127.0.0.1", port=50051)
+    channel = grpc.aio.insecure_channel("127.0.0.1:50051")
     service = echo.EchoStub(channel)
-    response = await service.echo(echo.EchoRequest(value="hello", extra_times=1))
-    print(response)
-
-    async for response in service.echo_stream(echo.EchoRequest(value="hello", extra_times=1)):
+    try:
+        response = await service.echo(echo.EchoRequest(value="hello", extra_times=1))
         print(response)
 
-    # don't forget to close the channel when done!
-    channel.close()
-
+        async for response in service.echo_stream(echo.EchoRequest(value="hello", extra_times=1)):
+            print(response)
+    finally:
+        await channel.close()
 
 if __name__ == "__main__":
     loop = asyncio.get_event_loop()
@@ -184,7 +194,7 @@ service methods:
 ```python
 import asyncio
 from echo import EchoBase, EchoRequest, EchoResponse, EchoStreamResponse
-from grpclib.server import Server
+import grpc
 from typing import AsyncIterator
 
 
@@ -198,9 +208,12 @@ class EchoService(EchoBase):
 
 
 async def main():
-    server = Server([EchoService()])
-    await server.start("127.0.0.1", 50051)
-    await server.wait_closed()
+    service = EchoService()
+    server = grpc.aio.server()
+    server.add_generic_rpc_handlers((service._grpcio_rpc_handler(),))
+    server.add_insecure_port("127.0.0.1:50051")
+    await server.start()
+    await server.wait_for_termination()
 
 if __name__ == '__main__':
     loop = asyncio.get_event_loop()

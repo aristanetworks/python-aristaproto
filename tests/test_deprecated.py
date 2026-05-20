@@ -3,7 +3,7 @@ import warnings
 import pytest
 
 from tests.mocks import MockChannel
-from tests.output_aristaproto.deprecated import (
+from tests.output_aristaproto_grpclib.deprecated import (
     Empty,
     Message,
     Test,

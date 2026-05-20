@@ -5,8 +5,8 @@ import pytest
 
 @pytest.mark.parametrize(
     "output_package",
-    ["tests.output_aristaproto", "tests.output_aristaproto_grpcio"],
-    ids=["grpclib", "grpcio"],
+    ["tests.output_aristaproto", "tests.output_aristaproto_grpclib"],
+    ids=["grpcio", "grpclib"],
 )
 def test_all_definition(output_package):
     """
