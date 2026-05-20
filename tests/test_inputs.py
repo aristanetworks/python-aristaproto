@@ -63,7 +63,10 @@ test_cases = TestCases(
     xfail=test_input_config.xfail,
 )
 
-plugin_output_package = "tests.output_aristaproto"
+plugin_output_packages = {
+    "grpclib": "tests.output_aristaproto",
+    "grpcio": "tests.output_aristaproto_grpcio",
+}
 reference_output_package = "tests.output_reference"
 
 TestData = namedtuple("TestData", ["plugin_module", "reference_module", "json_data"])
@@ -122,8 +125,13 @@ def dict_replace_nans(input_dict: Dict[Any, Any]) -> Dict[Any, Any]:
     return result
 
 
+@pytest.fixture(params=plugin_output_packages.values(), ids=plugin_output_packages)
+def plugin_output_package(request):
+    return request.param
+
+
 @pytest.fixture
-def test_data(request, reset_sys_path):
+def test_data(request, reset_sys_path, plugin_output_package):
     test_case_name = request.param
 
     reference_module_root = os.path.join(

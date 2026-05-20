@@ -98,6 +98,47 @@ credentials = grpc.ssl_channel_credentials(root_certificates)
 channel = grpc.aio.secure_channel("api.example.com:443", credentials)
 ```
 
+Common grpcio channel and call shapes:
+
+```python
+import grpc
+
+from example_pb import DoThingRequest, TestStub
+
+
+# Insecure local or private-network channel.
+channel = grpc.aio.insecure_channel("127.0.0.1:50051")
+
+# TLS channel. Pass certificate bytes when you need a custom trust root.
+credentials = grpc.ssl_channel_credentials(root_certificates=ca_bundle_bytes)
+channel = grpc.aio.secure_channel("api.example.com:443", credentials)
+
+# Channel options are grpcio-native key/value pairs. This is where proxy-relevant
+# transport options belong, for example disabling grpcio's HTTP proxy lookup.
+channel = grpc.aio.secure_channel(
+    "api.example.com:443",
+    credentials,
+    options=(
+        ("grpc.enable_http_proxy", 0),
+        ("grpc.primary_user_agent", "my-client/1.0"),
+    ),
+)
+
+client = TestStub(
+    channel,
+    timeout=10,
+    metadata={"authorization": "Bearer token"},
+    wait_for_ready=True,
+)
+
+# Per-call options override stub defaults.
+response = await client.do_thing(
+    DoThingRequest(name="leaf"),
+    timeout=2,
+    metadata=(("authorization", "Bearer override"),),
+)
+```
+
 ## Server changes
 
 0.x servers are registered with `grpclib.server.Server`:

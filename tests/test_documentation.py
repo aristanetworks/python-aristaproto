@@ -1,5 +1,8 @@
 import ast
+import importlib
 import inspect
+
+import pytest
 
 
 def check(generated_doc: str, type: str) -> None:
@@ -10,14 +13,18 @@ def check(generated_doc: str, type: str) -> None:
     assert f"Documentation of {type} 3" in generated_doc
 
 
-def test_documentation() -> None:
-    from .output_aristaproto.documentation import (
-        Enum,
-        ServiceBase,
-        ServiceStub,
-        Test,
-        Undocumented,
-    )
+@pytest.mark.parametrize(
+    "output_package",
+    ["tests.output_aristaproto", "tests.output_aristaproto_grpcio"],
+    ids=["grpclib", "grpcio"],
+)
+def test_documentation(output_package: str) -> None:
+    module = importlib.import_module(f"{output_package}.documentation")
+    Enum = module.Enum
+    ServiceBase = module.ServiceBase
+    ServiceStub = module.ServiceStub
+    Test = module.Test
+    Undocumented = module.Undocumented
 
     check(Test.__doc__, "message")
 

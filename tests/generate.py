@@ -11,6 +11,7 @@ from tests.util import (
     get_directories,
     inputs_path,
     output_path_aristaproto,
+    output_path_aristaproto_grpcio,
     output_path_aristaproto_pydantic,
     output_path_reference,
     protoc,
@@ -31,7 +32,7 @@ def clear_directory(dir_path: Path):
 
 
 async def generate(whitelist: Set[str], verbose: bool):
-    test_case_names = set(get_directories(inputs_path)) - {"__pycache__"}
+    test_case_names = sorted(set(get_directories(inputs_path)) - {"__pycache__"})
 
     path_whitelist = set()
     name_whitelist = set()
@@ -41,8 +42,8 @@ async def generate(whitelist: Set[str], verbose: bool):
             continue
         path_whitelist.add(item)
 
-    generation_tasks = []
-    for test_case_name in sorted(test_case_names):
+    selected_test_cases = []
+    for test_case_name in test_case_names:
         test_case_input_path = inputs_path.joinpath(test_case_name).resolve()
         if (
             whitelist
@@ -50,14 +51,25 @@ async def generate(whitelist: Set[str], verbose: bool):
             and test_case_name not in name_whitelist
         ):
             continue
-        generation_tasks.append(
-            generate_test_case_output(test_case_input_path, test_case_name, verbose)
-        )
+        selected_test_cases.append((test_case_input_path, test_case_name))
+
+    os.makedirs(output_path_aristaproto, exist_ok=True)
+    os.makedirs(output_path_aristaproto_grpcio, exist_ok=True)
+    os.makedirs(output_path_aristaproto_pydantic, exist_ok=True)
+
+    clear_directory(output_path_aristaproto)
+    clear_directory(output_path_aristaproto_grpcio)
+    clear_directory(output_path_aristaproto_pydantic)
+
+    generation_tasks = [
+        generate_test_case_output(test_case_input_path, test_case_name, verbose)
+        for test_case_input_path, test_case_name in selected_test_cases
+    ]
 
     failed_test_cases = []
     # Wait for all subprocs and match any failures to names to report
-    for test_case_name, result in zip(
-        sorted(test_case_names), await asyncio.gather(*generation_tasks)
+    for (_test_case_input_path, test_case_name), result in zip(
+        selected_test_cases, await asyncio.gather(*generation_tasks)
     ):
         if result != 0:
             failed_test_cases.append(test_case_name)
@@ -81,22 +93,27 @@ async def generate_test_case_output(
 
     test_case_output_path_reference = output_path_reference.joinpath(test_case_name)
     test_case_output_path_aristaproto = output_path_aristaproto
+    test_case_output_path_aristaproto_grpcio = output_path_aristaproto_grpcio
     test_case_output_path_aristaproto_pyd = output_path_aristaproto_pydantic
 
     os.makedirs(test_case_output_path_reference, exist_ok=True)
-    os.makedirs(test_case_output_path_aristaproto, exist_ok=True)
-    os.makedirs(test_case_output_path_aristaproto_pyd, exist_ok=True)
 
     clear_directory(test_case_output_path_reference)
-    clear_directory(test_case_output_path_aristaproto)
 
     (
         (ref_out, ref_err, ref_code),
         (plg_out, plg_err, plg_code),
+        (plg_out_grpcio, plg_err_grpcio, plg_code_grpcio),
         (plg_out_pyd, plg_err_pyd, plg_code_pyd),
     ) = await asyncio.gather(
         protoc(test_case_input_path, test_case_output_path_reference, True),
         protoc(test_case_input_path, test_case_output_path_aristaproto, False),
+        protoc(
+            test_case_input_path,
+            test_case_output_path_aristaproto_grpcio,
+            False,
+            plugin_options=("transport=grpcio",),
+        ),
         protoc(
             test_case_input_path, test_case_output_path_aristaproto_pyd, False, True
         ),
@@ -140,6 +157,27 @@ async def generate_test_case_output(
             sys.stderr.buffer.write(plg_err)
             sys.stderr.buffer.flush()
 
+    if plg_code_grpcio == 0:
+        print(
+            f"\033[31;1;4mGenerated plugin grpcio output for {test_case_name!r}\033[0m"
+        )
+    else:
+        print(
+            f"\033[31;1;4mFailed to generate plugin grpcio output for {test_case_name!r}\033[0m"
+        )
+        print(plg_err_grpcio.decode())
+
+    if verbose:
+        if plg_out_grpcio:
+            print("Plugin grpcio stdout:")
+            sys.stdout.buffer.write(plg_out_grpcio)
+            sys.stdout.buffer.flush()
+
+        if plg_err_grpcio:
+            print("Plugin grpcio stderr:")
+            sys.stderr.buffer.write(plg_err_grpcio)
+            sys.stderr.buffer.flush()
+
     if plg_code_pyd == 0:
         print(
             f"\033[31;1;4mGenerated plugin (pydantic compatible) output for {test_case_name!r}\033[0m"
@@ -161,7 +199,7 @@ async def generate_test_case_output(
             sys.stderr.buffer.write(plg_err_pyd)
             sys.stderr.buffer.flush()
 
-    return max(ref_code, plg_code, plg_code_pyd)
+    return max(ref_code, plg_code, plg_code_grpcio, plg_code_pyd)
 
 
 HELP = "\n".join(
