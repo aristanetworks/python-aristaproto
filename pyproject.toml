@@ -1,10 +1,8 @@
 [project]
 name = "aristaproto"
-version = "0.1.5.dev0"
+version = "2.0.0.dev0"
 description = "Arista Protobuf / Python gRPC bindings generator & library"
-authors = [
-    { name = "Arista Networks", email = "ansible@arista.com" }
-]
+authors = [{ name = "Arista Networks", email = "ansible@arista.com" }]
 readme = "README.md"
 requires-python = ">=3.10"
 keywords = ["protobuf", "gRPC", "aristanetworks", "arista"]
@@ -27,9 +25,7 @@ compiler = [
     "ruff>=0.11.11",
     "jinja2>=3.0.3",
 ]
-rust-codec = [
-    "betterproto-rust-codec==0.1.1",
-]
+rust-codec = ["betterproto-rust-codec==0.1.1"]
 
 [dependency-groups]
 dev = [
@@ -81,7 +77,7 @@ cmd = "pytest"
 help = "Run tests"
 
 [tool.poe.tasks.types]
-cmd  = "mypy src --ignore-missing-imports"
+cmd = "mypy src --ignore-missing-imports"
 help = "Check types with mypy"
 
 [tool.poe.tasks.format]
@@ -109,15 +105,15 @@ cmd = "ruff check --select I src tests"
 help = "Check that the imports are sorted"
 
 [tool.poe.tasks.docs]
-cmd  = "sphinx-build docs docs/build"
+cmd = "sphinx-build docs docs/build"
 help = "Build the sphinx docs"
 
 [tool.poe.tasks.bench]
 shell = "asv run master^! && asv run HEAD^! && asv compare master HEAD"
-help  = "Benchmark current commit vs. master branch"
+help = "Benchmark current commit vs. master branch"
 
 [tool.poe.tasks.clean]
-cmd  = """
+cmd = """
 rm -rf .asv .coverage .mypy_cache .pytest_cache
        dist aristaproto.egg-info **/__pycache__
        testsoutput_*
@@ -147,7 +143,7 @@ max_line_length = 88
 
 [tool.doc8.ignore_path_errors]
 "docs/migrating.rst" = [
-    "D001",  # contains table which is longer than 88 characters long
+    "D001", # contains table which is longer than 88 characters long
 ]
 
 [tool.coverage.run]
