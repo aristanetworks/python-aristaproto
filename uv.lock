@@ -39,6 +39,7 @@ name = "aristaproto"
 version = "2.0.0.dev0"
 source = { editable = "." }
 dependencies = [
+    { name = "grpcio" },
     { name = "grpclib" },
     { name = "python-dateutil" },
     { name = "typing-extensions" },
@@ -80,6 +81,7 @@ test = [
 [package.metadata]
 requires-dist = [
     { name = "betterproto-rust-codec", marker = "extra == 'rust-codec'", specifier = "==0.1.1" },
+    { name = "grpcio", specifier = ">=1.54.2,<2.0" },
     { name = "grpclib", specifier = ">=0.4.1,<0.5.0" },
     { name = "jinja2", marker = "extra == 'compiler'", specifier = ">=3.0.3" },
     { name = "python-dateutil", specifier = ">=2.8,<3.0" },
