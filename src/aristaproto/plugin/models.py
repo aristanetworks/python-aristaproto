@@ -275,6 +275,7 @@ class OutputTemplate:
     services: List["ServiceCompiler"] = field(default_factory=list)
     imports_type_checking_only: Set[str] = field(default_factory=set)
     pydantic_dataclasses: bool = False
+    transport: str = "grpclib"
     output: bool = True
     typing_compiler: TypingCompiler = field(default_factory=DirectImportTypingCompiler)
 
@@ -695,6 +696,13 @@ class ServiceCompiler(ProtoContentBase):
     def py_name(self) -> str:
         return pythonize_class_name(self.proto_name)
 
+    @property
+    def grpcio_service_name(self) -> str:
+        package_part = (
+            f"{self.output_file.package}." if self.output_file.package else ""
+        )
+        return f"{package_part}{self.proto_name}"
+
 
 @dataclass
 class ServiceMethodCompiler(ProtoContentBase):
@@ -708,13 +716,14 @@ class ServiceMethodCompiler(ProtoContentBase):
         # Add method to service
         self.parent.methods.append(self)
 
-        self.output_file.imports_type_checking_only.add("import grpclib.server")
-        self.output_file.imports_type_checking_only.add(
-            "from aristaproto.grpc.grpclib_client import MetadataLike"
-        )
-        self.output_file.imports_type_checking_only.add(
-            "from grpclib.metadata import Deadline"
-        )
+        if self.output_file.transport == "grpclib":
+            self.output_file.imports_type_checking_only.add("import grpclib.server")
+            self.output_file.imports_type_checking_only.add(
+                "from aristaproto.grpc.grpclib_client import MetadataLike"
+            )
+            self.output_file.imports_type_checking_only.add(
+                "from grpclib.metadata import Deadline"
+            )
 
         super().__post_init__()  # check for unset fields
 
@@ -734,6 +743,10 @@ class ServiceMethodCompiler(ProtoContentBase):
             f"{self.output_file.package}." if self.output_file.package else ""
         )
         return f"/{package_part}{self.parent.proto_name}/{self.proto_name}"
+
+    @property
+    def grpcio_method_name(self) -> str:
+        return f"{self.parent.grpcio_service_name}.{self.proto_name}"
 
     @property
     def py_input_message_type(self) -> str:

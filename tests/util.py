@@ -14,6 +14,7 @@ from typing import (
     Generator,
     List,
     Optional,
+    Sequence,
     Tuple,
     Union,
 )
@@ -44,10 +45,12 @@ async def protoc(
     output_dir: Union[str, Path],
     reference: bool = False,
     pydantic_dataclasses: bool = False,
+    plugin_options: Optional[Sequence[str]] = None,
 ):
     path: Path = Path(path).resolve()
     output_dir: Path = Path(output_dir).resolve()
     python_out_option: str = "python_aristaproto_out" if not reference else "python_out"
+    plugin_options = plugin_options or ()
 
     if pydantic_dataclasses:
         plugin_path = Path("src/aristaproto/plugin/main.py")
@@ -82,11 +85,16 @@ async def protoc(
             *[p.as_posix() for p in path.glob("*.proto")],
         ]
     else:
+        option_args = [
+            f"--{python_out_option.removesuffix('_out')}_opt={option}"
+            for option in plugin_options
+        ]
         command = [
             sys.executable,
             "-m",
             "grpc.tools.protoc",
             f"--proto_path={path.as_posix()}",
+            *option_args,
             f"--{python_out_option}={output_dir.as_posix()}",
             *[p.as_posix() for p in path.glob("*.proto")],
         ]

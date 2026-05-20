@@ -1,0 +1,153 @@
+{% for service in output_file.services %}
+class {{ service.py_name }}Stub(aristaproto.ServiceStub):
+    {% if service.comment %}
+{{ service.comment }}
+
+    {% elif not service.methods %}
+    pass
+    {% endif %}
+    {% for method in service.methods %}
+    async def {{ method.py_name }}(self
+        {%- if not method.client_streaming -%}
+            , {{ method.py_input_message_param }}: "{{ method.py_input_message_type }}"
+        {%- else -%}
+            {# Client streaming: need a request iterator instead #}
+            , {{ method.py_input_message_param }}_iterator: "{{ output_file.typing_compiler.union(output_file.typing_compiler.async_iterable(method.py_input_message_type), output_file.typing_compiler.iterable(method.py_input_message_type)) }}"
+        {%- endif -%}
+            ,
+            *
+            , timeout: {{ output_file.typing_compiler.optional("float") }} = None
+            , deadline: {{ output_file.typing_compiler.optional('"Deadline"') }} = None
+            , metadata: {{ output_file.typing_compiler.optional('"MetadataLike"') }} = None
+            ) -> "{% if method.server_streaming %}{{ output_file.typing_compiler.async_iterator(method.py_output_message_type ) }}{% else %}{{ method.py_output_message_type }}{% endif %}":
+        {% if method.comment %}
+{{ method.comment }}
+
+        {% endif %}
+        {% if method.proto_obj.options.deprecated %}
+        warnings.warn("{{ service.py_name }}.{{ method.py_name }} is deprecated", DeprecationWarning)
+
+        {% endif %}
+        {% if method.server_streaming %}
+            {% if method.client_streaming %}
+        async for response in self._stream_stream(
+            "{{ method.route }}",
+            {{ method.py_input_message_param }}_iterator,
+            {{ method.py_input_message_type }},
+            {{ method.py_output_message_type.strip('"') }},
+            timeout=timeout,
+            deadline=deadline,
+            metadata=metadata,
+        ):
+            yield response
+            {% else %}{# i.e. not client streaming #}
+        async for response in self._unary_stream(
+            "{{ method.route }}",
+            {{ method.py_input_message_param }},
+            {{ method.py_output_message_type.strip('"') }},
+            timeout=timeout,
+            deadline=deadline,
+            metadata=metadata,
+        ):
+            yield response
+
+            {% endif %}{# if client streaming #}
+        {% else %}{# i.e. not server streaming #}
+            {% if method.client_streaming %}
+        return await self._stream_unary(
+            "{{ method.route }}",
+            {{ method.py_input_message_param }}_iterator,
+            {{ method.py_input_message_type }},
+            {{ method.py_output_message_type.strip('"') }},
+            timeout=timeout,
+            deadline=deadline,
+            metadata=metadata,
+        )
+            {% else %}{# i.e. not client streaming #}
+        return await self._unary_unary(
+            "{{ method.route }}",
+            {{ method.py_input_message_param }},
+            {{ method.py_output_message_type.strip('"') }},
+            timeout=timeout,
+            deadline=deadline,
+            metadata=metadata,
+        )
+            {% endif %}{# client streaming #}
+        {% endif %}
+
+    {% endfor %}
+{% endfor %}
+
+{% for i in output_file.imports_end %}
+{{ i }}
+{% endfor %}
+
+{% for service in output_file.services %}
+class {{ service.py_name }}Base(ServiceBase):
+    {% if service.comment %}
+{{ service.comment }}
+
+    {% endif %}
+
+    {% for method in service.methods %}
+    async def {{ method.py_name }}(self
+        {%- if not method.client_streaming -%}
+            , {{ method.py_input_message_param }}: "{{ method.py_input_message_type }}"
+        {%- else -%}
+            {# Client streaming: need a request iterator instead #}
+            , {{ method.py_input_message_param }}_iterator: {{ output_file.typing_compiler.async_iterator(method.py_input_message_type) }}
+        {%- endif -%}
+            ) -> {% if method.server_streaming %}{{ output_file.typing_compiler.async_iterator(method.py_output_message_type) }}{% else %}"{{ method.py_output_message_type }}"{% endif %}:
+        {% if method.comment %}
+{{ method.comment }}
+
+        {% endif %}
+        raise grpclib.GRPCError(grpclib.const.Status.UNIMPLEMENTED)
+        {% if method.server_streaming %}
+        {# Commented out to avoid unreachable code. #}
+        {# yield {{ method.py_output_message_type }}() #}
+        {% endif %}
+
+    {% endfor %}
+
+    {% for method in service.methods %}
+    async def __rpc_{{ method.py_name }}(self, stream: "grpclib.server.Stream[{{ method.py_input_message_type }}, {{ method.py_output_message_type }}]") -> None:
+        {% if not method.client_streaming %}
+        request = await stream.recv_message()
+        {% else %}
+        request = stream.__aiter__()
+        {% endif %}
+        {% if not method.server_streaming %}
+        response = await self.{{ method.py_name }}(request)
+        await stream.send_message(response)
+        {% else %}
+        await self._call_rpc_handler_server_stream(
+            self.{{ method.py_name }},
+            stream,
+            request,
+        )
+        {% endif %}
+
+    {% endfor %}
+
+    def __mapping__(self) -> {{ output_file.typing_compiler.dict("str", "grpclib.const.Handler") }}:
+        return {
+        {% for method in service.methods %}
+        "{{ method.route }}": grpclib.const.Handler(
+            self.__rpc_{{ method.py_name }},
+            {% if not method.client_streaming and not method.server_streaming %}
+            grpclib.const.Cardinality.UNARY_UNARY,
+            {% elif not method.client_streaming and method.server_streaming %}
+            grpclib.const.Cardinality.UNARY_STREAM,
+            {% elif method.client_streaming and not method.server_streaming %}
+            grpclib.const.Cardinality.STREAM_UNARY,
+            {% else %}
+            grpclib.const.Cardinality.STREAM_STREAM,
+            {% endif %}
+            {{ method.py_input_message_type }},
+            {{ method.py_output_message_type }},
+        ),
+        {% endfor %}
+        }
+
+{% endfor %}

@@ -1,9 +1,8 @@
 # Upgrade guide: aristaproto 0.x to 2.0
 
-Status: draft. The grpcio AsyncIO client and server runtimes are being proven
-before the generator is switched over. The examples below describe the intended
-2.0 grpcio transport shape and should be revisited after generator support
-lands.
+Status: draft. The grpcio AsyncIO client and server runtimes now have generator
+support behind the explicit `transport=grpcio` option. The guide still tracks
+the migration as draft while grpcio coverage is broadened.
 
 ## What stays the same
 
@@ -17,7 +16,7 @@ lands.
 ## Regenerate service code
 
 For the grpcio transport, regenerate generated modules with the grpcio transport
-option once it is available:
+option:
 
 ```bash
 python -m grpc_tools.protoc \
@@ -27,8 +26,9 @@ python -m grpc_tools.protoc \
   path/to/protos/*.proto
 ```
 
-The legacy grpclib transport remains available during the migration window with
-`transport=grpclib`.
+The legacy grpclib transport remains available during the migration window and
+is still the default. Use `transport=grpclib` explicitly if you want that choice
+recorded in build scripts.
 
 ## Client changes
 
@@ -194,5 +194,5 @@ iterables from generated grpcio clients.
 - grpclib stream objects are not exposed to generated-style service methods.
 - Custom code that directly depends on generated `__mapping__` needs to switch
   to grpcio server registration.
-- The exact generator output should be rechecked after the grpcio transport is
-  wired into code generation.
+- The grpcio transport is opt-in during the migration window; generated service
+  modules continue to use grpclib unless `transport=grpcio` is passed.

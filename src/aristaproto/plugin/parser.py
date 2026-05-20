@@ -75,7 +75,30 @@ def traverse(
 def generate_code(request: CodeGeneratorRequest) -> CodeGeneratorResponse:
     response = CodeGeneratorResponse()
 
-    plugin_options = request.parameter.split(",") if request.parameter else []
+    plugin_options = (
+        [opt for opt in request.parameter.split(",") if opt]
+        if request.parameter
+        else []
+    )
+    transport_opts = [
+        opt[len("transport=") :]
+        for opt in plugin_options
+        if opt.startswith("transport=")
+    ]
+    if len(transport_opts) > 1:
+        raise ValueError("Multiple transport options provided")
+    transport = transport_opts[0] if transport_opts else "grpclib"
+    if transport not in {"grpclib", "grpcio"}:
+        raise ValueError(f"Unsupported transport option: {transport}")
+
+    # Gather any typing generation options.
+    typing_opts = [
+        opt[len("typing.") :] for opt in plugin_options if opt.startswith("typing.")
+    ]
+    if len(typing_opts) > 1:
+        raise ValueError("Multiple typing options provided")
+    typing_opt = typing_opts[0] if typing_opts else "direct"
+
     response.supported_features = CodeGeneratorResponseFeature.FEATURE_PROTO3_OPTIONAL
 
     request_data = PluginRequestCompiler(plugin_request_obj=request)
@@ -85,7 +108,9 @@ def generate_code(request: CodeGeneratorRequest) -> CodeGeneratorResponse:
         if output_package_name not in request_data.output_packages:
             # Create a new output if there is no output for this package
             request_data.output_packages[output_package_name] = OutputTemplate(
-                parent_request=request_data, package_proto_obj=proto_file
+                parent_request=request_data,
+                package_proto_obj=proto_file,
+                transport=transport,
             )
         # Add this input file to the output corresponding to this package
         request_data.output_packages[output_package_name].input_files.append(proto_file)
@@ -103,15 +128,6 @@ def generate_code(request: CodeGeneratorRequest) -> CodeGeneratorResponse:
                 output_package_name
             ].pydantic_dataclasses = True
 
-        # Gather any typing generation options.
-        typing_opts = [
-            opt[len("typing.") :] for opt in plugin_options if opt.startswith("typing.")
-        ]
-
-        if len(typing_opts) > 1:
-            raise ValueError("Multiple typing options provided")
-        # Set the compiler type.
-        typing_opt = typing_opts[0] if typing_opts else "direct"
         if typing_opt == "direct":
             request_data.output_packages[
                 output_package_name
@@ -124,6 +140,8 @@ def generate_code(request: CodeGeneratorRequest) -> CodeGeneratorResponse:
             request_data.output_packages[
                 output_package_name
             ].typing_compiler = NoTyping310TypingCompiler()
+        else:
+            raise ValueError(f"Unsupported typing option: {typing_opt}")
 
     # Read Messages and Enums
     # We need to read Messages before Services in so that we can

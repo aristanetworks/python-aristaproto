@@ -44,8 +44,14 @@ from pydantic import {% for i in output_file.pydantic_imports|sort %}{{ i }}{% i
 
 import aristaproto
 {% if output_file.services %}
+{% if output_file.transport == "grpcio" %}
+import grpc
+from aristaproto.grpcio_client import MetadataLike, ServiceStub
+from aristaproto.grpcio_server import ServiceBase
+{% else %}
 from aristaproto.grpc.grpclib_server import ServiceBase
 import grpclib
+{% endif %}
 {% endif %}
 
 {% if output_file.imports_type_checking_only %}
