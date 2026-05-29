@@ -20,8 +20,8 @@ dependencies = [
     "strenum>=0.4.15,<0.5 ; python_version == '3.10'",
 ]
 
-# [tool.uv.sources]
-# aristaproto = { path = "../aristaproto" }
+[tool.uv.sources]
+aristaproto = { path = "../aristaproto" }
 
 [project.urls]
 Repository = "https://github.com/aristanetworks/python-aristaproto"

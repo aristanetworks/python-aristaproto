@@ -4,7 +4,7 @@ import pytest
 def test_check_compiler_version():
     from aristaproto import __version__, check_compiler_version
 
-    x, y, z = (int(x) for x in __version__.split("."))
+    x, y, z = (int(x) for x in __version__.split(".")[:3])  # Ignoring .dev etc.
 
     check_compiler_version(__version__)
     check_compiler_version(f"{x}.{y}.{z - 1}")

@@ -17,7 +17,7 @@ import aristaproto
 
 from ....message_pool import default_message_pool
 
-_COMPILER_VERSION = "0.10.1"
+_COMPILER_VERSION = "2.0.0.dev0"
 aristaproto.check_compiler_version(_COMPILER_VERSION)
 
 
