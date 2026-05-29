@@ -225,6 +225,12 @@ Message objects include `aristaproto.Message.to_json` and
 `aristaproto.Message.to_dict`, `aristaproto.Message.from_dict` for
 converting back and forth from JSON serializable dicts.
 
+`google.protobuf.Timestamp` fields use timezone-aware `datetime.datetime`
+values. When binary or JSON data contains sub-microsecond precision,
+aristaproto preserves it by returning a `aristaproto.nano_datetime.NanoDatetime`,
+which is a `datetime.datetime` subclass. Timestamp JSON accepts and emits
+RFC 3339 strings with up to 9 fractional second digits.
+
 For compatibility the default is to convert field names to
 `aristaproto.Casing.CAMEL`. You can control this behavior by passing a
 different casing value, e.g:

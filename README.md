@@ -6,11 +6,11 @@
 
 Changes in this project compared with the base project:
 
-- Renamed to `aristaproto`.
+- Renamed to `aristaproto`
+- Use a local `NanoDateTime` subclass of `datetime` to carry nanosecond precision through `Timestamp` conversions.
 
 Planned changes:
 
-- Support for precision timestamps (nanoseconds)
 - Support for grpcio async bindings (both client and server)
 
 ## Documentation
