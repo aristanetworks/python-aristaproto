@@ -2,7 +2,7 @@ import pytest
 
 
 def test_check_compiler_version():
-    from betterproto2 import __version__, check_compiler_version
+    from aristaproto import __version__, check_compiler_version
 
     x, y, z = (int(x) for x in __version__.split("."))
 

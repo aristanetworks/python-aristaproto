@@ -1,18 +1,18 @@
 API reference
 =============
 
-The following document outlines betterproto's api. These classes should not be extended manually.
+The following document outlines aristaproto's api. These classes should not be extended manually.
 
 
 ## Message
 
-::: betterproto2.Message
+::: aristaproto.Message
 
-::: betterproto2.which_one_of
+::: aristaproto.which_one_of
 
 
 ## Enumerations
 
-::: betterproto2.Enum
+::: aristaproto.Enum
 
-::: betterproto2.Casing
+::: aristaproto.Casing

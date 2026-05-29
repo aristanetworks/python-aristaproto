@@ -6,11 +6,11 @@ updates:
       interval: "monthly"
 
   - package-ecosystem: "uv"
-    directory: "/betterproto2"
+    directory: "/aristaproto"
     schedule:
       interval: "monthly"
 
   - package-ecosystem: "uv"
-    directory: "/betterproto2_compiler"
+    directory: "/aristaproto_compiler"
     schedule:
       interval: "monthly"

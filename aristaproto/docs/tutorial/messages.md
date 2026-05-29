@@ -1,6 +1,6 @@
 # Messages
 
-A protobuf message is represented by a class that inherit from the `betterproto2.Message` abstract class.
+A protobuf message is represented by a class that inherit from the `aristaproto.Message` abstract class.
 
 ## Field presence
 
@@ -58,13 +58,13 @@ message Test {
 }
 ```
 
-The `betterproto2.which_one_of` function allows finding which one of the fields of the `oneof` group is set. The
+The `aristaproto.which_one_of` function allows finding which one of the fields of the `oneof` group is set. The
 function returns the name of the field that is set, and the value of the field.
 
 ```python
->>> betterproto2.which_one_of(Message(a=True), group_name="group")
+>>> aristaproto.which_one_of(Message(a=True), group_name="group")
 ('a', True)
->>> betterproto2.which_one_of(Message(), group_name="group")
+>>> aristaproto.which_one_of(Message(), group_name="group")
 ('', None)
 ```
 
@@ -98,11 +98,11 @@ using, even when you know that the field will never be `None` is your applicatio
 message.msg_field.field
 ```
 
-To simplify this, betterproto provides a convenience function: `unwrap`. This function takes an optional value, and
+To simplify this, aristaproto provides a convenience function: `unwrap`. This function takes an optional value, and
 returns the same value if it is not `None`. If the value is `None`, an error is raised.
 
 ```python
-from betterproto2 import unwrap
+from aristaproto import unwrap
 
 # no typing error!
 unwrap(message.msg_field).field

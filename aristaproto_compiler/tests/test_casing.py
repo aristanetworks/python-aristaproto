@@ -1,5 +1,5 @@
 def test_snake_case() -> None:
-    from betterproto2_compiler.casing import snake_case
+    from aristaproto_compiler.casing import snake_case
 
     # Simple renaming
     assert snake_case("methodName") == "method_name"

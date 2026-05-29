@@ -1,9 +1,9 @@
 import pytest
 
-import betterproto2
+import aristaproto
 
 
-class Colour(betterproto2.Enum):
+class Colour(aristaproto.Enum):
     RED = 1
     GREEN = 2
     BLUE = 3

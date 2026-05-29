@@ -5,8 +5,8 @@ from unittest.mock import ANY
 
 import pytest
 
-import betterproto2
-from betterproto2 import OutputFormat
+import aristaproto
+from aristaproto import OutputFormat
 from tests.util import requires_grpcio, requires_grpclib  # noqa: F401
 
 
@@ -73,35 +73,35 @@ def test_oneof_support():
 
     msg = OneofMsg()
 
-    assert betterproto2.which_one_of(msg, "group1")[0] == ""
+    assert aristaproto.which_one_of(msg, "group1")[0] == ""
 
     msg.x = 1
-    assert betterproto2.which_one_of(msg, "group1")[0] == "x"
+    assert aristaproto.which_one_of(msg, "group1")[0] == "x"
 
     msg.x = None
     msg.y = "test"
-    assert betterproto2.which_one_of(msg, "group1")[0] == "y"
+    assert aristaproto.which_one_of(msg, "group1")[0] == "y"
 
     msg.a = IntMsg(val=1)
-    assert betterproto2.which_one_of(msg, "group2")[0] == "a"
+    assert aristaproto.which_one_of(msg, "group2")[0] == "a"
 
     msg.a = None
     msg.b = "test"
-    assert betterproto2.which_one_of(msg, "group2")[0] == "b"
+    assert aristaproto.which_one_of(msg, "group2")[0] == "b"
 
     # Group 1 shouldn't be touched
-    assert betterproto2.which_one_of(msg, "group1")[0] == "y"
+    assert aristaproto.which_one_of(msg, "group1")[0] == "y"
 
     # Zero value should always serialize for one-of
     msg = OneofMsg(x=0)
-    assert betterproto2.which_one_of(msg, "group1")[0] == "x"
+    assert aristaproto.which_one_of(msg, "group1")[0] == "x"
     assert bytes(msg) == b"\x08\x00"
 
     # Round trip should also work
     msg = OneofMsg.parse(bytes(msg))
-    assert betterproto2.which_one_of(msg, "group1")[0] == "x"
+    assert aristaproto.which_one_of(msg, "group1")[0] == "x"
     assert msg.x == 0
-    assert betterproto2.which_one_of(msg, "group2")[0] == ""
+    assert aristaproto.which_one_of(msg, "group2")[0] == ""
 
 
 def test_json_casing():
@@ -120,7 +120,7 @@ def test_json_casing():
         "kabobCase": 4,
     }
 
-    assert json.loads(msg.to_json(casing=betterproto2.Casing.SNAKE)) == {
+    assert json.loads(msg.to_json(casing=aristaproto.Casing.SNAKE)) == {
         "pascal_case": 1,
         "camel_case": 2,
         "snake_case": 3,
@@ -144,7 +144,7 @@ def test_dict_casing():
         "kabobCase": 4,
     }
 
-    assert msg.to_dict(casing=betterproto2.Casing.SNAKE) == {
+    assert msg.to_dict(casing=aristaproto.Casing.SNAKE) == {
         "pascal_case": 1,
         "camel_case": 2,
         "snake_case": 3,
@@ -294,29 +294,29 @@ def test_oneof_default_value_set_causes_writes_wire():
 
     assert bytes(int_msg) == b"\x08\x00"
     assert (
-        betterproto2.which_one_of(int_msg, "group1")
-        == betterproto2.which_one_of(_round_trip_serialization(int_msg), "group1")
+        aristaproto.which_one_of(int_msg, "group1")
+        == aristaproto.which_one_of(_round_trip_serialization(int_msg), "group1")
         == ("int_field", 0)
     )
 
     assert bytes(str_msg) == b"\x12\x00"  # Baz is just an empty string
     assert (
-        betterproto2.which_one_of(str_msg, "group1")
-        == betterproto2.which_one_of(_round_trip_serialization(str_msg), "group1")
+        aristaproto.which_one_of(str_msg, "group1")
+        == aristaproto.which_one_of(_round_trip_serialization(str_msg), "group1")
         == ("string_field", "")
     )
 
     assert bytes(empty_msg) == b"\x1a\x00"
     assert (
-        betterproto2.which_one_of(empty_msg, "group1")
-        == betterproto2.which_one_of(_round_trip_serialization(empty_msg), "group1")
+        aristaproto.which_one_of(empty_msg, "group1")
+        == aristaproto.which_one_of(_round_trip_serialization(empty_msg), "group1")
         == ("empty_field", Empty())
     )
 
     assert bytes(msg) == b""
     assert (
-        betterproto2.which_one_of(msg, "group1")
-        == betterproto2.which_one_of(_round_trip_serialization(msg), "group1")
+        aristaproto.which_one_of(msg, "group1")
+        == aristaproto.which_one_of(_round_trip_serialization(msg), "group1")
         == ("", None)
     )
 

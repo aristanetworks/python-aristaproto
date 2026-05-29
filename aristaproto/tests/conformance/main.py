@@ -1,7 +1,7 @@
 import struct
 import sys
 
-import betterproto2
+import aristaproto
 from tests.outputs.conformance.conformance import (
     ConformanceRequest,
     ConformanceResponse,
@@ -21,20 +21,20 @@ class ProtocolError(Exception):
 def do_test(request: ConformanceRequest) -> ConformanceResponse:
     response = ConformanceResponse()
 
-    # is_json = betterproto2.which_one_of(request, "payload")[0] == "json_payload"
+    # is_json = aristaproto.which_one_of(request, "payload")[0] == "json_payload"
 
     if request.message_type != "protobuf_test_messages.proto3.TestAllTypesProto3":
         return ConformanceResponse(skipped="non proto3 tests not supported")
 
     try:
-        if betterproto2.which_one_of(request, "payload")[0] == "protobuf_payload":
+        if aristaproto.which_one_of(request, "payload")[0] == "protobuf_payload":
             try:
                 test_message = TestAllTypesProto3.parse(request.protobuf_payload)
             except Exception as e:
                 response.parse_error = str(e)
                 return response
 
-        elif betterproto2.which_one_of(request, "payload")[0] == "json_payload":
+        elif aristaproto.which_one_of(request, "payload")[0] == "json_payload":
             try:
                 ignore_unknown_fields = request.test_category == TestCategory.JSON_IGNORE_UNKNOWN_PARSING_TEST
                 test_message = TestAllTypesProto3.from_json(
@@ -44,7 +44,7 @@ def do_test(request: ConformanceRequest) -> ConformanceResponse:
                 response.parse_error = str(e)
                 return response
 
-        elif betterproto2.which_one_of(request, "payload")[0] == "text_payload":
+        elif aristaproto.which_one_of(request, "payload")[0] == "text_payload":
             return ConformanceResponse(skipped="text input not supported")
 
         else:

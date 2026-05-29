@@ -1,9 +1,9 @@
 Home
 ====
 
-Welcome to betterproto2's documentation!
+Welcome to aristaproto's documentation!
 
-betterproto is a protobuf compiler and interpreter. It improves the experience of using
+aristaproto is a protobuf compiler and interpreter. It improves the experience of using
 Protobuf and gRPC in Python, by generating readable, understandable, and idiomatic
 Python code, using modern language features.
 

@@ -1,6 +1,6 @@
 import pytest
 
-from betterproto2_compiler.plugin.module_validation import ModuleValidator
+from aristaproto_compiler.plugin.module_validation import ModuleValidator
 
 
 @pytest.mark.parametrize(

@@ -1,6 +1,6 @@
 import pytest
 
-from betterproto2.casing import (
+from aristaproto.casing import (
     camel_case,
     pascal_case,
     snake_case,

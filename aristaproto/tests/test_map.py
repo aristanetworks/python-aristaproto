@@ -1,4 +1,4 @@
-# from tests.output_betterproto.map import Enum, Test
+# from tests.output_aristaproto.map import Enum, Test
 
 
 def test_map():

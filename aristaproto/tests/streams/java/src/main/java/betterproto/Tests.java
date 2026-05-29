@@ -1,7 +1,7 @@
-package betterproto;
+package aristaproto;
 
-import betterproto.nested.NestedOuterClass;
-import betterproto.oneof.Oneof;
+import aristaproto.nested.NestedOuterClass;
+import aristaproto.oneof.Oneof;
 
 import com.google.protobuf.CodedInputStream;
 import com.google.protobuf.CodedOutputStream;

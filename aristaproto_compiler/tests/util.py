@@ -16,7 +16,7 @@ async def protoc(
 ):
     resolved_path: Path = Path(path).resolve()
     resolved_output_dir: Path = Path(output_dir).resolve()
-    python_out_option: str = "python_out" if reference else "python_betterproto2_out"
+    python_out_option: str = "python_out" if reference else "python_aristaproto_out"
 
     command = [
         sys.executable,
@@ -28,14 +28,14 @@ async def protoc(
     ]
 
     if not reference:
-        command.insert(3, "--python_betterproto2_opt=server_generation=async")
-        command.insert(3, f"--python_betterproto2_opt=client_generation={client_generation}")
+        command.insert(3, "--python_aristaproto_opt=server_generation=async")
+        command.insert(3, f"--python_aristaproto_opt=client_generation={client_generation}")
 
         if pydantic_dataclasses:
-            command.insert(3, "--python_betterproto2_opt=pydantic_dataclasses")
+            command.insert(3, "--python_aristaproto_opt=pydantic_dataclasses")
 
         if google_protobuf_descriptors:
-            command.insert(3, "--python_betterproto2_opt=google_protobuf_descriptors")
+            command.insert(3, "--python_aristaproto_opt=google_protobuf_descriptors")
 
     proc = await asyncio.create_subprocess_exec(
         *command,

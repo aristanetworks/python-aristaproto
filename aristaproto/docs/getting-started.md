@@ -6,7 +6,7 @@ Getting Started
 
 ### Install protoc
 
-The betterproto2 compiler is a plugin of `protoc`, you first need to [install](https://grpc.io/docs/protoc-installation/) it.
+The aristaproto compiler is a plugin of `protoc`, you first need to [install](https://grpc.io/docs/protoc-installation/) it.
 
 You can also use it from `grpcio-tools`:
 
@@ -14,12 +14,12 @@ You can also use it from `grpcio-tools`:
 pip install grpcio-tools
 ```
 
-### Install `betterproto2_compiler`
+### Install `aristaproto_compiler`
 
-It is possible to install `betterproto2_compiler` using pip:
+It is possible to install `aristaproto_compiler` using pip:
 
 ```
-pip install betterproto2_compiler
+pip install aristaproto_compiler
 ```
 
 ### Compile a proto file
@@ -44,29 +44,29 @@ You should be able to compile it using:
 
 ```
 mkdir lib
-protoc -I . --python_betterproto2_out=lib example.proto
+protoc -I . --python_aristaproto_out=lib example.proto
 ```
 
 If you installed `protoc` with `grpc-tools`, the command will be:
 
 ```
 mkdir lib
-python -m grpc.tools.protoc -I . --python_betterproto2_out=lib example.proto
+python -m grpc.tools.protoc -I . --python_aristaproto_out=lib example.proto
 ```
 
 #### Service compilation
 
 ##### Clients
 
-By default, for each service, betterproto will generate a synchronous client. Both synchronous and asynchronous clients
+By default, for each service, aristaproto will generate a synchronous client. Both synchronous and asynchronous clients
 are supported.
 
   - Synchronous clients rely on the `grpcio` package. Make sure to enable the `grpcio` extra package when installing
-    betterproto2 to use them.
+    aristaproto to use them.
   - Asynchronous clients rely on the `grpclib` package. Make sure to enable the `grpclib` extra package when installing
-    betterproto2 to use them.
+    aristaproto to use them.
 
-To choose which clients to generate, use the `client_generation` option of betterproto. It supports the following
+To choose which clients to generate, use the `client_generation` option of aristaproto. It supports the following
 values:
 
   - `none`: Clients are not generated.
@@ -80,31 +80,31 @@ values:
         Synchronous clients are generated with the Sync suffix, and asynchronous clients are generated with the Async
         suffix.
 
-For example, `protoc -I . --python_betterproto2_out=lib example.proto --python_betterproto2_opt=client_generation=async`
+For example, `protoc -I . --python_aristaproto_out=lib example.proto --python_aristaproto_opt=client_generation=async`
 will only generate asynchronous clients.
 
 ##### Servers
 
-By default, betterproto will not generate server base classes. To enable them, set the `server_generation` option to
-`async` with `--python_betterproto2_opt=server_generation=async`.
+By default, aristaproto will not generate server base classes. To enable them, set the `server_generation` option to
+`async` with `--python_aristaproto_opt=server_generation=async`.
 
-These base classes will be asynchronous and rely on `grpclib`. To use them, make sure to install `betterproto2` with the
+These base classes will be asynchronous and rely on `grpclib`. To use them, make sure to install `aristaproto` with the
 `grpclib` extra package.
 
 
 ## Installation
 
-The package `betterproto2` can be installed from PyPI using `pip`:
+The package `aristaproto` can be installed from PyPI using `pip`:
 
 ```sh
-pip install betterproto2[all]
+pip install aristaproto[all]
 ```
 
 !!! warning
-    Make sure that the proto files were generated with a version of `betterproto2_compiler` that is compatible with your
-    version of `betterproto2`.
+    Make sure that the proto files were generated with a version of `aristaproto_compiler` that is compatible with your
+    version of `aristaproto`.
 
-    The version `0.x.y` of `betterproto` is compatible with the version `0.a.b` of the compiler if and only if `a=b`.
+    The version `0.x.y` of `aristaproto` is compatible with the version `0.a.b` of the compiler if and only if `a=b`.
 
 ## Basic usage
 
@@ -220,25 +220,25 @@ async def start_server():
 
 ## JSON
 
-Message objects include `betterproto.Message.to_json` and
-`betterproto.Message.from_json` methods for JSON (de)serialisation, and
-`betterproto.Message.to_dict`, `betterproto.Message.from_dict` for
+Message objects include `aristaproto.Message.to_json` and
+`aristaproto.Message.from_json` methods for JSON (de)serialisation, and
+`aristaproto.Message.to_dict`, `aristaproto.Message.from_dict` for
 converting back and forth from JSON serializable dicts.
 
 For compatibility the default is to convert field names to
-`betterproto.Casing.CAMEL`. You can control this behavior by passing a
+`aristaproto.Casing.CAMEL`. You can control this behavior by passing a
 different casing value, e.g:
 
 ```python
 @dataclass
-class MyMessage(betterproto.Message):
-    a_long_field_name: str = betterproto.string_field(1)
+class MyMessage(aristaproto.Message):
+    a_long_field_name: str = aristaproto.string_field(1)
 
 
 >>> test = MyMessage(a_long_field_name="Hello World!")
->>> test.to_dict(betterproto.Casing.SNAKE)
+>>> test.to_dict(aristaproto.Casing.SNAKE)
 {"a_long_field_name": "Hello World!"}
->>> test.to_dict(betterproto.Casing.CAMEL)
+>>> test.to_dict(aristaproto.Casing.CAMEL)
 {"aLongFieldName": "Hello World!"}
 
 >>> test.to_json(indent=2)

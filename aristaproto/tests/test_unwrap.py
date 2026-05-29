@@ -2,7 +2,7 @@ import pytest
 
 
 def test_unwrap() -> None:
-    from betterproto2 import unwrap
+    from aristaproto import unwrap
     from tests.outputs.unwrap.unwrap import Message, NestedMessage
 
     with pytest.raises(ValueError):

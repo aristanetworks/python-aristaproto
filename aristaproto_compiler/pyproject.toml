@@ -1,22 +1,19 @@
 [project]
-name = "betterproto2_compiler"
-version = "0.10.1"
-description = "Compiler for betterproto2"
+name = "aristaproto_compiler"
+version = "2.0.0.dev0"
+description = "Compiler for aristaproto"
 authors = [
+    { name = "Arista Networks", email = "ansible@arista.com" },
     { name = "Adrien Vannson", email = "adrien.vannson@protonmail.com" },
     { name = "Daniel G. Taylor", email = "danielgtaylor@gmail.com" },
 ]
 license = "MIT"
-keywords = [
-    "protobuf",
-    "gRPC",
-    "compiler",
-]
+keywords = ["protobuf", "gRPC", "compiler"]
 requires-python = ">=3.10,<4.0"
 dependencies = [
     # TODO use the version from the current repo?
-    "betterproto2~=0.10.0",
-    # "betterproto2",
+    "aristaproto~=2.0.0.dev0",
+    # "aristaproto",
     "ruff>=0.9.3",
     "jinja2>=3.0.3",
     "typing-extensions>=4.7.1,<5",
@@ -24,14 +21,13 @@ dependencies = [
 ]
 
 # [tool.uv.sources]
-# betterproto2 = { path = "../betterproto2" }
+# aristaproto = { path = "../aristaproto" }
 
 [project.urls]
-Documentation = "https://betterproto.github.io/python-betterproto2/"
-Repository = "https://github.com/betterproto/python-betterproto2"
+Repository = "https://github.com/aristanetworks/python-aristaproto"
 
 [project.scripts]
-protoc-gen-python_betterproto2 = "betterproto2_compiler.plugin:main"
+protoc-gen-python_aristaproto = "aristaproto_compiler.plugin:main"
 
 [dependency-groups]
 dev = [
@@ -42,10 +38,7 @@ dev = [
     "ipykernel>=6.29.5,<7",
     "ruff==0.15.12",
 ]
-test = [
-    "pytest>=8.3.4,<10",
-    "protobuf>=5.29.3,<6",
-]
+test = ["pytest>=8.3.4,<10", "protobuf>=5.29.3,<6"]
 
 [tool.uv]
 package = true
@@ -56,16 +49,16 @@ requires = ["uv_build>=0.9.7,<0.12"]
 build-backend = "uv_build"
 
 [tool.ruff]
-extend-exclude = ["tests/outputs", "src/betterproto2_compiler/lib"]
+extend-exclude = ["tests/outputs", "src/aristaproto_compiler/lib"]
 target-version = "py310"
 line-length = 120
 
 [tool.ruff.lint]
 select = [
-    "F401",  # Unused imports
-    "F841",  # Unused local variables
-    "F821",  # Undefined names
-    "E501",  # Line length violations
+    "F401", # Unused imports
+    "F841", # Unused local variables
+    "F821", # Undefined names
+    "E501", # Line length violations
 
     "SIM101", # Simplify unnecessary if-else blocks
     "SIM102", # Simplify return or yield statements
@@ -94,7 +87,7 @@ script = "tests.generate:main"
 [tool.poe.tasks._generate_tests_lib]
 shell = """
 python -m grpc.tools.protoc \
-    --python_betterproto2_out=tests/output_betterproto \
+    --python_aristaproto_out=tests/output_aristaproto \
     google/protobuf/any.proto \
     google/protobuf/api.proto \
     google/protobuf/duration.proto \
@@ -107,8 +100,8 @@ python -m grpc.tools.protoc \
     google/protobuf/wrappers.proto
 
 python -m grpc.tools.protoc \
-    --python_betterproto2_out=tests/output_betterproto_pydantic \
-    --python_betterproto2_opt=pydantic_dataclasses \
+    --python_aristaproto_out=tests/output_aristaproto_pydantic \
+    --python_aristaproto_opt=pydantic_dataclasses \
     google/protobuf/any.proto \
     google/protobuf/api.proto \
     google/protobuf/duration.proto \
@@ -121,8 +114,8 @@ python -m grpc.tools.protoc \
     google/protobuf/wrappers.proto
 
 python -m grpc.tools.protoc \
-    --python_betterproto2_out=tests/output_betterproto_descriptor \
-    --python_betterproto2_opt=google_protobuf_descriptors \
+    --python_aristaproto_out=tests/output_aristaproto_descriptor \
+    --python_aristaproto_opt=google_protobuf_descriptors \
     google/protobuf/any.proto \
     google/protobuf/api.proto \
     google/protobuf/duration.proto \
@@ -136,7 +129,7 @@ python -m grpc.tools.protoc \
 """
 
 [tool.poe.tasks.typecheck]
-cmd  = "pyright src"
+cmd = "pyright src"
 help = "Typecheck the code with Pyright"
 
 [tool.poe.tasks.format]
@@ -164,7 +157,7 @@ cmd = "ruff check src tests"
 help = "Check the code with the Ruff linter"
 
 # python -m grpc.tools.protoc \
-#     --python_betterproto2_out=src/lib2 \
+#     --python_aristaproto_out=src/lib2 \
 #     google/protobuf/any.proto \
 #     google/protobuf/api.proto \
 #     google/protobuf/duration.proto \

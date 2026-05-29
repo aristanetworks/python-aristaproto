@@ -8,9 +8,9 @@ on:
       - '**'
 
 jobs:
-  publish_betterproto2:
+  publish_aristaproto:
     if: github.event_name == 'push' && startsWith(github.event.ref, 'refs/tags/lib-v')
-    name: Publish betterproto2 to PyPI
+    name: Publish aristaproto to PyPI
     runs-on: ubuntu-latest
 
     permissions:
@@ -18,7 +18,7 @@ jobs:
 
     environment:
       name: pypi
-      url: https://pypi.org/p/betterproto2
+      url: https://pypi.org/p/aristaproto
 
     steps:
       - uses: actions/checkout@v6
@@ -30,17 +30,17 @@ jobs:
           python-version: "3.10"
 
       - name: Build package
-        working-directory: ./betterproto2
+        working-directory: ./aristaproto
         run: uv build
 
       - name: Publish package distributions to PyPI
         uses: pypa/gh-action-pypi-publish@release/v1.14
         with:
-          packages-dir: betterproto2/dist
+          packages-dir: aristaproto/dist
 
-  publish_betterproto2_compiler:
+  publish_aristaproto_compiler:
     if: github.event_name == 'push' && startsWith(github.event.ref, 'refs/tags/compiler-v')
-    name: Publish betterproto2_compiler to PyPI
+    name: Publish aristaproto_compiler to PyPI
     runs-on: ubuntu-latest
 
     permissions:
@@ -48,7 +48,7 @@ jobs:
 
     environment:
       name: pypi
-      url: https://pypi.org/p/betterproto2_compiler
+      url: https://pypi.org/p/aristaproto_compiler
 
     steps:
       - uses: actions/checkout@v6
@@ -60,10 +60,10 @@ jobs:
           python-version: "3.10"
 
       - name: Build package
-        working-directory: ./betterproto2_compiler
+        working-directory: ./aristaproto_compiler
         run: uv build
 
       - name: Publish package distributions to PyPI
         uses: pypa/gh-action-pypi-publish@release/v1.14
         with:
-          packages-dir: betterproto2_compiler/dist
+          packages-dir: aristaproto_compiler/dist

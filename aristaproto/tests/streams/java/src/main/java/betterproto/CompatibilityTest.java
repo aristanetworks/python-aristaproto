@@ -1,4 +1,4 @@
-package betterproto;
+package aristaproto;
 
 import java.io.IOException;
 

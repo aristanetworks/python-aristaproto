@@ -1,29 +1,31 @@
 [project]
-name = "betterproto2"
-version = "0.10.0"
-description = "A better Protobuf / gRPC generator & library"
+name = "aristaproto"
+version = "2.0.0.dev0"
+description = "Arista Protobuf / Python gRPC bindings generator & library"
 authors = [
-    {name = "Adrien Vannson", email = "adrien.vannson@protonmail.com"},
-    {name = "Daniel G. Taylor", email = "danielgtaylor@gmail.com"}
+    { name = "Arista Networks", email = "ansible@arista.com" },
+    { name = "Adrien Vannson", email = "adrien.vannson@protonmail.com" },
+    { name = "Daniel G. Taylor", email = "danielgtaylor@gmail.com" },
 ]
 keywords = ["protobuf", "gRPC"]
 license = "MIT"
 requires-python = ">=3.10,<4.0"
-dependencies = [
-    "python-dateutil>=2.9.0.post0",
-    "typing-extensions>=4.14.0",
-]
+dependencies = ["python-dateutil>=2.9.0.post0", "typing-extensions>=4.14.0"]
 
 [project.urls]
-Documentation = "https://betterproto.github.io/python-betterproto2/"
-Repository = "https://github.com/betterproto/python-betterproto2"
+Repository = "https://github.com/aristanetworks/python-aristaproto"
 
 [project.optional-dependencies]
 grpcio = ["grpcio>=1.72.1"]
 grpclib = ["grpclib>=0.4.8"]
 pydantic = ["pydantic>=2.11.5"]
 protobuf = ["protobuf>=5.29.3"]
-all = ["grpclib>=0.4.8", "grpcio>=1.72.1", "pydantic>=2.11.5", "protobuf>=5.29.3"]
+all = [
+    "grpclib>=0.4.8",
+    "grpcio>=1.72.1",
+    "pydantic>=2.11.5",
+    "protobuf>=5.29.3",
+]
 
 [dependency-groups]
 dev = [
@@ -53,16 +55,16 @@ requires = ["uv_build>=0.9.7,<0.12"]
 build-backend = "uv_build"
 
 [tool.ruff]
-extend-exclude = ["tests/outputs", "src/betterproto2/internal_lib"]
+extend-exclude = ["tests/outputs", "src/aristaproto/internal_lib"]
 target-version = "py310"
 line-length = 120
 
 [tool.ruff.lint]
 select = [
-    "F401",  # Unused imports
-    "F841",  # Unused local variables
-    "F821",  # Undefined names
-    "E501",  # Line length violations
+    "F401", # Unused imports
+    "F841", # Unused local variables
+    "F821", # Undefined names
+    "E501", # Line length violations
 
     "SIM101", # Simplify unnecessary if-else blocks
     "SIM102", # Simplify return or yield statements
@@ -88,18 +90,18 @@ addopts = "-p no:warnings"
 # Dev workflow tasks
 [tool.poe.tasks.get-local-compiled-tests]
 # task useful for local development. Copies the compiled test files from the compiler folder to the tests folder
-shell = "rm -rf tests/outputs* && cp -r ../betterproto2_compiler/tests/outputs tests"
+shell = "rm -rf tests/outputs* && cp -r ../aristaproto_compiler/tests/outputs tests"
 
 [tool.poe.tasks.test]
 cmd = "pytest"
 help = "Run tests"
 
 [tool.poe.tasks.test-cov]
-cmd = "pytest --cov=betterproto2 --cov-report=term --cov-report=html tests/"
+cmd = "pytest --cov=aristaproto --cov-report=term --cov-report=html tests/"
 help = "Run tests with code coverage report"
 
 [tool.poe.tasks.typecheck]
-cmd  = "pyright src"
+cmd = "pyright src"
 help = "Typecheck the code with Pyright"
 
 [tool.poe.tasks.format]
@@ -127,9 +129,9 @@ cmd = "ruff check src tests"
 help = "Check the code"
 
 [tool.poe.tasks.clean]
-cmd  = """
+cmd = """
 rm -rf .coverage .mypy_cache .pytest_cache
-       dist betterproto.egg-info **/__pycache__
+       dist aristaproto.egg-info **/__pycache__
        testsoutput_*
 """
 help = "Clean out generated files from the workspace"

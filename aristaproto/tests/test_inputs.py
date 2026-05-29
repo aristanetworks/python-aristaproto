@@ -10,7 +10,7 @@ from typing import Any
 
 import pytest
 
-import betterproto2
+import aristaproto
 from tests.util import requires_grpcio, requires_grpclib, requires_protobuf, requires_pydantic  # noqa: F401
 
 # Force pure-python implementation instead of C++, otherwise imports
@@ -47,7 +47,7 @@ def list_replace_nans(items: list) -> list[Any]:
         elif isinstance(item, dict):
             result.append(dict_replace_nans(item))
         elif isinstance(item, float) and math.isnan(item):
-            result.append(betterproto2.NAN)
+            result.append(aristaproto.NAN)
     return result
 
 
@@ -71,7 +71,7 @@ def dict_replace_nans(input_dict: dict[Any, Any]) -> dict[Any, Any]:
         elif isinstance(value, list):
             value = list_replace_nans(value)
         elif isinstance(value, float) and math.isnan(value):
-            value = betterproto2.NAN
+            value = aristaproto.NAN
         result[key] = value
     return result
 
@@ -201,7 +201,7 @@ def test_message_json(test_case: TestCase, requires_pydantic, requires_grpcio, r
         with open(current_dir / "inputs" / json_path) as f:
             json_data = f.read()
 
-        message: betterproto2.Message = plugin_module.Test.from_json(json_data)
+        message: aristaproto.Message = plugin_module.Test.from_json(json_data)
         message_json = message.to_json(indent=0)
 
         assert dict_replace_nans(json.loads(message_json)) == dict_replace_nans(json.loads(json_data))
@@ -236,7 +236,7 @@ def test_binary_compatibility(
         reference_instance = Parse(json_data, reference_module.Test())
         reference_binary_output = reference_instance.SerializeToString()
 
-        plugin_instance_from_json: betterproto2.Message = plugin_module.Test().from_json(json_data)
+        plugin_instance_from_json: aristaproto.Message = plugin_module.Test().from_json(json_data)
         plugin_instance_from_binary = plugin_module.Test.FromString(reference_binary_output)
 
         # Generally this can't be relied on, but here we are aiming to match the
