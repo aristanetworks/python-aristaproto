@@ -1,7 +1,10 @@
 MIT License
 
-Copyright (c) 2023 Daniel G. Taylor
+Copyright (c) 2026 Arista Networks
+
 Copyright (c) 2024 The betterproto contributors
+
+Copyright (c) 2023 Daniel G. Taylor
 
 Permission is hereby granted, free of charge, to any person obtaining a copy
 of this software and associated documentation files (the "Software"), to deal

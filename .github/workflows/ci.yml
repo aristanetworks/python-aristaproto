@@ -24,97 +24,97 @@ jobs:
           version: "0.11.11"
           python-version: "3.12"
 
-      - name: Install betterproto2
-        working-directory: ./betterproto2
+      - name: Install aristaproto
+        working-directory: ./aristaproto
         run: uv sync --locked
 
-      - name: Install betterproto2_compiler
-        working-directory: ./betterproto2_compiler
+      - name: Install aristaproto_compiler
+        working-directory: ./aristaproto_compiler
         run: uv sync --locked
 
       - name: Compile test files
-        working-directory: ./betterproto2_compiler
+        working-directory: ./aristaproto_compiler
         shell: bash
         run: uv run poe generate
 
-      - name: Move compiled files to betterproto2
+      - name: Move compiled files to aristaproto
         shell: bash
-        run: cp -r betterproto2_compiler/tests/outputs betterproto2/tests
+        run: cp -r aristaproto_compiler/tests/outputs aristaproto/tests
 
       - name: Execute test suite
-        working-directory: ./betterproto2
+        working-directory: ./aristaproto
         run: uv run poe test
 
 
       - name: Add Pydantic
-        working-directory: ./betterproto2
+        working-directory: ./aristaproto
         run: uv sync --locked --extra=pydantic
 
       - name: Execute test suite
-        working-directory: ./betterproto2
+        working-directory: ./aristaproto
         run: uv run poe test
 
 
       - name: Add all but Pydantic
-        working-directory: ./betterproto2
+        working-directory: ./aristaproto
         run: uv sync --locked --extra=grpclib --extra=grpcio --extra=protobuf
 
       - name: Execute test suite
-        working-directory: ./betterproto2
+        working-directory: ./aristaproto
         run: uv run poe test
 
 
       - name: Add grpclib
-        working-directory: ./betterproto2
+        working-directory: ./aristaproto
         run: uv sync --locked --extra=grpclib
 
       - name: Execute test suite
-        working-directory: ./betterproto2
+        working-directory: ./aristaproto
         run: uv run poe test
 
 
       - name: Add all but grpclib
-        working-directory: ./betterproto2
+        working-directory: ./aristaproto
         run: uv sync --locked --extra=pydantic --extra=grpcio --extra=protobuf
 
       - name: Execute test suite
-        working-directory: ./betterproto2
+        working-directory: ./aristaproto
         run: uv run poe test
 
 
       - name: Add grpcio
-        working-directory: ./betterproto2
+        working-directory: ./aristaproto
         run: uv sync --locked --extra=grpcio
 
       - name: Execute test suite
-        working-directory: ./betterproto2
+        working-directory: ./aristaproto
         run: uv run poe test
 
 
       - name: Add all but grpcio
-        working-directory: ./betterproto2
+        working-directory: ./aristaproto
         run: uv sync --locked --extra=pydantic --extra=grpclib --extra=protobuf
 
       - name: Execute test suite
-        working-directory: ./betterproto2
+        working-directory: ./aristaproto
         run: uv run poe test
 
 
       - name: Add protobuf
-        working-directory: ./betterproto2
+        working-directory: ./aristaproto
         run: uv sync --locked --extra=protobuf
 
       - name: Execute test suite
-        working-directory: ./betterproto2
+        working-directory: ./aristaproto
         run: uv run poe test
 
 
       - name: Add all but protobuf
-        working-directory: ./betterproto2
+        working-directory: ./aristaproto
         run: uv sync --locked --extra=pydantic --extra=grpclib --extra=grpcio
 
       - name: Execute test suite
-        working-directory: ./betterproto2
+        working-directory: ./aristaproto
         run: uv run poe test
 
   tests:
@@ -134,30 +134,30 @@ jobs:
           version: "0.11.11"
           python-version: ${{ matrix.python-version }}
 
-      - name: Install betterproto2
-        working-directory: ./betterproto2
+      - name: Install aristaproto
+        working-directory: ./aristaproto
         run: uv sync --locked --all-extras --all-groups
 
-      - name: Install betterproto2_compiler
-        working-directory: ./betterproto2_compiler
+      - name: Install aristaproto_compiler
+        working-directory: ./aristaproto_compiler
         run: uv sync --locked --all-extras --all-groups
 
-      - name: Test betterproto2_compiler
-        working-directory: ./betterproto2_compiler
+      - name: Test aristaproto_compiler
+        working-directory: ./aristaproto_compiler
         shell: bash
         run: uv run poe test
 
       - name: Compile test files
-        working-directory: ./betterproto2_compiler
+        working-directory: ./aristaproto_compiler
         shell: bash
         run: uv run poe generate
 
-      - name: Move compiled files to betterproto2
+      - name: Move compiled files to aristaproto
         shell: bash
-        run: cp -r betterproto2_compiler/tests/outputs betterproto2/tests
+        run: cp -r aristaproto_compiler/tests/outputs aristaproto/tests
 
       - name: Execute test suite
-        working-directory: ./betterproto2
+        working-directory: ./aristaproto
         shell: bash
         run: uv run poe test
 
@@ -175,7 +175,7 @@ jobs:
       - name: Create test script
         if: matrix.os == 'Ubuntu' || matrix.os == 'MacOS'
         shell: bash
-        working-directory: ./betterproto2
+        working-directory: ./aristaproto
         run: |
           echo '#!/bin/bash' > script.sh
           echo 'python -m tests.conformance.main' >> script.sh
@@ -183,6 +183,6 @@ jobs:
 
       - name: Run conformance tests
         if: matrix.os == 'Ubuntu' || matrix.os == 'MacOS'
-        working-directory: ./betterproto2
+        working-directory: ./aristaproto
         run: |
           uv run conformance_test_runner --failure_list tests/conformance/failing_tests.txt ./script.sh
