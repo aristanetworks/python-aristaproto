@@ -32,8 +32,8 @@ requires-dist = [
     { name = "grpclib", marker = "extra == 'grpclib'", specifier = ">=0.4.8" },
     { name = "protobuf", marker = "extra == 'all'", specifier = ">=5.29.3" },
     { name = "protobuf", marker = "extra == 'protobuf'", specifier = ">=5.29.3" },
-    { name = "pydantic", marker = "extra == 'all'", specifier = ">=2.11.5" },
-    { name = "pydantic", marker = "extra == 'pydantic'", specifier = ">=2.11.5" },
+    { name = "pydantic", marker = "extra == 'all'", specifier = ">=2.13.4" },
+    { name = "pydantic", marker = "extra == 'pydantic'", specifier = ">=2.13.4" },
     { name = "python-dateutil", specifier = ">=2.9.0.post0" },
     { name = "typing-extensions", specifier = ">=4.14.0" },
 ]
