@@ -62,18 +62,6 @@ Required.Proto3.JsonInput.StringFieldNotAString # Should have failed to parse, b
 Required.Proto3.JsonInput.TimestampJsonInputLowercaseT # Should have failed to parse, but didn't.
 Required.Proto3.JsonInput.TimestampJsonInputLowercaseZ # Should have failed to parse, but didn't.
 Required.Proto3.JsonInput.TimestampJsonInputMissingT # Should have failed to parse, but didn't.
-Required.Proto3.JsonInput.TimestampLittleAfterEpochlValue.JsonOutput # Output was not equivalent to reference message: deleted: optional_timestamp.nanos: 1
-Required.Proto3.JsonInput.TimestampLittleAfterEpochlValue.ProtobufOutput # Output was not equivalent to reference message: deleted: optional_timestamp.nanos: 1
-Required.Proto3.JsonInput.TimestampLittleBeforeEpochValue.JsonOutput # Output was not equivalent to reference message: modified: optional_timestamp.nanos: 999999999 -> 999999000
-Required.Proto3.JsonInput.TimestampLittleBeforeEpochValue.ProtobufOutput # Output was not equivalent to reference message: modified: optional_timestamp.nanos: 999999999 -> 999999000
-Required.Proto3.JsonInput.TimestampMaxValue.JsonOutput # Output was not equivalent to reference message: modified: optional_timestamp.nanos: 999999999 -> 999999000
-Required.Proto3.JsonInput.TimestampMaxValue.ProtobufOutput # Output was not equivalent to reference message: modified: optional_timestamp.nanos: 999999999 -> 999999000
-Required.Proto3.JsonInput.TimestampNanoAfterEpochlValue.JsonOutput # Output was not equivalent to reference message: deleted: optional_timestamp.nanos: 1
-Required.Proto3.JsonInput.TimestampNanoAfterEpochlValue.ProtobufOutput # Output was not equivalent to reference message: deleted: optional_timestamp.nanos: 1
-Required.Proto3.JsonInput.TimestampNanoBeforeEpochValue.JsonOutput # Output was not equivalent to reference message: modified: optional_timestamp.nanos: 999999999 -> 999999000
-Required.Proto3.JsonInput.TimestampNanoBeforeEpochValue.ProtobufOutput # Output was not equivalent to reference message: modified: optional_timestamp.nanos: 999999999 -> 999999000
-Required.Proto3.JsonInput.TimestampRepeatedValue.JsonOutput # Output was not equivalent to reference message: modified: repeated_timestamp[1].nanos: 999999999 -> 999999000
-Required.Proto3.JsonInput.TimestampRepeatedValue.ProtobufOutput # Output was not equivalent to reference message: modified: repeated_timestamp[1].nanos: 999999999 -> 999999000
 Required.Proto3.JsonInput.TimestampWithMissingColonInOffset # Should have failed to parse, but didn't.
 Required.Proto3.JsonInput.Uint32FieldNotInteger # Should have failed to parse, but didn't.
 Required.Proto3.JsonInput.Uint32FieldTooLarge # Should have failed to parse, but didn't.
