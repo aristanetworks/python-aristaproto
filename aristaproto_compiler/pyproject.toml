@@ -24,6 +24,7 @@ dependencies = [
 aristaproto = { path = "../aristaproto" }
 
 [project.urls]
+Documentation = "https://aristanetworks.github.io/python-aristaproto"
 Repository = "https://github.com/aristanetworks/python-aristaproto"
 
 [project.scripts]

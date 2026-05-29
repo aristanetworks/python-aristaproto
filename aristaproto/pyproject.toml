@@ -13,6 +13,7 @@ requires-python = ">=3.10,<4.0"
 dependencies = ["python-dateutil>=2.9.0.post0", "typing-extensions>=4.14.0"]
 
 [project.urls]
+Documentation = "https://aristanetworks.github.io/python-aristaproto"
 Repository = "https://github.com/aristanetworks/python-aristaproto"
 
 [project.optional-dependencies]

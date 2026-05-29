@@ -15,7 +15,7 @@ Planned changes:
 
 ## Documentation
 
-See the [documentation](aristaproto/docs/index.md)
+See the [documentation](https://aristanetworks.github.io/python-aristaproto/)
 
 ## License
 
