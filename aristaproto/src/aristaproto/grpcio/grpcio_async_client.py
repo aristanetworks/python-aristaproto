@@ -1,11 +1,13 @@
 from __future__ import annotations
 
+import asyncio
 from abc import ABC
 from collections.abc import AsyncIterable, AsyncIterator, Collection, Iterable, Iterator, Mapping
 from typing import TYPE_CHECKING, Any, TypeVar, cast
 
+import grpc
+
 if TYPE_CHECKING:
-    import grpc
     import grpc.aio
 
     from aristaproto._types import GrpcioProtoMessage
@@ -122,15 +124,24 @@ class ServiceStub(ABC):
         )
         request_messages = _AsyncMessageSourceIterator(request_iterator)
         call = rpc(
-            request_messages,
+            None,
             **self.__resolve_call_kwargs(timeout, metadata, credentials, wait_for_ready),
         )
+        sending_task = asyncio.ensure_future(_send_request_messages(call, request_messages))
         try:
-            return await call
+            response_task = asyncio.ensure_future(call)
+            done, _pending = await asyncio.wait(
+                {response_task, sending_task},
+                return_when=asyncio.FIRST_COMPLETED,
+            )
+            if sending_task in done:
+                await sending_task
+            return await response_task
         finally:
             if not call.done():
                 call.cancel()
             await request_messages.aclose()
+            await _cancel_task(sending_task)
 
     async def _stream_stream(
         self,
@@ -155,16 +166,20 @@ class ServiceStub(ABC):
         )
         request_messages = _AsyncMessageSourceIterator(request_iterator)
         call = rpc(
-            request_messages,
+            None,
             **self.__resolve_call_kwargs(timeout, metadata, credentials, wait_for_ready),
         )
+        sending_task = asyncio.ensure_future(_send_request_messages(call, request_messages))
         try:
             async for message in call:
+                if sending_task.done():
+                    await sending_task
                 yield message
         finally:
             if not call.done():
                 call.cancel()
             await request_messages.aclose()
+            await _cancel_task(sending_task)
 
 
 def _normalize_metadata(metadata: MetadataLike | None) -> tuple[tuple[str, Value], ...] | None:
@@ -175,6 +190,75 @@ def _normalize_metadata(metadata: MetadataLike | None) -> tuple[tuple[str, Value
         return cast("tuple[tuple[str, Value], ...]", tuple(metadata.items()))
 
     return cast("tuple[tuple[str, Value], ...]", tuple(metadata))
+
+
+async def _send_request_messages(
+    call: grpc.aio.StreamStreamCall | grpc.aio.StreamUnaryCall,
+    messages: MessageSource,
+) -> None:
+    try:
+        if isinstance(messages, AsyncIterable):
+            async for message in messages:
+                if not await _write_request_message(call, message):
+                    return
+        else:
+            for message in messages:
+                if not await _write_request_message(call, message):
+                    return
+        await _done_writing(call)
+    except asyncio.CancelledError:
+        raise
+    except Exception:
+        if not call.done():
+            call.cancel()
+        raise
+
+
+async def _write_request_message(
+    call: grpc.aio.StreamStreamCall | grpc.aio.StreamUnaryCall,
+    message: GrpcioProtoMessage,
+) -> bool:
+    if call.done():
+        return False
+
+    try:
+        await call.write(message)
+    except grpc.aio.AioRpcError:
+        return False
+    except asyncio.InvalidStateError:
+        if call.done():
+            return False
+        raise
+    return True
+
+
+async def _done_writing(call: grpc.aio.StreamStreamCall | grpc.aio.StreamUnaryCall) -> None:
+    if call.done():
+        return
+
+    try:
+        await call.done_writing()
+    except grpc.aio.AioRpcError:
+        return
+    except asyncio.InvalidStateError:
+        if call.done():
+            return
+        raise
+
+
+async def _cancel_task(task: asyncio.Future[Any]) -> None:
+    if task.done():
+        try:
+            task.exception()
+        except asyncio.CancelledError:
+            pass
+        return
+
+    task.cancel()
+    try:
+        await task
+    except asyncio.CancelledError:
+        pass
 
 
 class _AsyncMessageSourceIterator(AsyncIterator[Any]):
