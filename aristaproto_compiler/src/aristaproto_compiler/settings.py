@@ -65,10 +65,22 @@ class ServerGeneration(StrEnum):
     ASYNC = "async"
 
 
+class ClientAsyncTransport(StrEnum):
+    GRPCLIB = "grpclib"
+    GRPCIO = "grpcio"
+
+
+class ServerAsyncTransport(StrEnum):
+    GRPCLIB = "grpclib"
+    GRPCIO = "grpcio"
+
+
 @dataclass
 class Settings:
     pydantic_dataclasses: bool
     google_protobuf_descriptors: bool
 
     client_generation: ClientGeneration
+    client_async_transport: ClientAsyncTransport
     server_generation: ServerGeneration
+    server_async_transport: ServerAsyncTransport

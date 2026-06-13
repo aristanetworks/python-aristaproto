@@ -1,0 +1,43 @@
+class {{ (service.py_name + "Base") | add_to_all }}(aristaproto_grpcio.ServiceBase):
+    {% if service.comment %}
+    """
+    {{ service.comment | indent(4) }}
+    """
+    {% endif %}
+
+    {% for method in service.methods %}
+    async def {{ method.py_name }}(self
+        {%- if not method.client_streaming -%}
+            , message: "{{ method.py_input_message_type }}"
+        {%- else -%}
+            {# Client streaming: need a request iterator instead #}
+            , messages: "AsyncIterator[{{ method.py_input_message_type }}]"
+        {%- endif -%}
+            ) -> {% if method.server_streaming %}"AsyncIterator[{{ method.py_output_message_type }}]"{% else %}"{{ method.py_output_message_type }}"{% endif %}:
+        {% if method.comment %}
+        """
+        {{ method.comment | indent(8) }}
+        """
+        {% endif %}
+
+        await self._grpcio_unimplemented()
+        {% if method.server_streaming %}
+        {# yielding here changes the return type from a coroutine to an async_generator #}
+        yield {{ method.py_output_message_type }}()
+        {% endif %}
+
+    {% endfor %}
+
+    def _grpcio_rpc_handler(self) -> grpc.GenericRpcHandler:
+        return self._grpcio_generic_rpc_handler(
+            "{{ service.grpcio_service_name }}",
+            {
+            {% for method in service.methods %}
+                "{{ method.proto_name }}": self._grpcio_{% if not method.client_streaming and not method.server_streaming %}unary_unary{% elif not method.client_streaming and method.server_streaming %}unary_stream{% elif method.client_streaming and not method.server_streaming %}stream_unary{% else %}stream_stream{% endif %}_rpc_method_handler(
+                    self.{{ method.py_name }},
+                    {{ method.py_input_message_type }},
+                    {{ method.py_output_message_type }},
+                ),
+            {% endfor %}
+            },
+        )

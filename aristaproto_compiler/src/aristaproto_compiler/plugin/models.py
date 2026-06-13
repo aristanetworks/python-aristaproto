@@ -53,7 +53,7 @@ from aristaproto_compiler.lib.google.protobuf import (
     SourceCodeInfo,
 )
 from aristaproto_compiler.lib.google.protobuf.compiler import CodeGeneratorRequest
-from aristaproto_compiler.settings import Settings
+from aristaproto_compiler.settings import ClientAsyncTransport, ServerAsyncTransport, ServerGeneration, Settings
 
 # Organize proto types into categories
 PROTO_FLOAT_TYPES = (
@@ -213,6 +213,62 @@ class OutputTemplate:
             Names of the input files used to build this output.
         """
         return sorted([f.name for f in self.input_files])
+
+    @property
+    def has_services(self) -> bool:
+        return bool(self.services)
+
+    @property
+    def generates_sync_client(self) -> bool:
+        return self.has_services and self.settings.client_generation.is_sync_generated
+
+    @property
+    def generates_grpcio_async_client(self) -> bool:
+        return (
+            self.has_services
+            and self.settings.client_generation.is_async_generated
+            and self.settings.client_async_transport is ClientAsyncTransport.GRPCIO
+        )
+
+    @property
+    def generates_grpclib_async_client(self) -> bool:
+        return (
+            self.has_services
+            and self.settings.client_generation.is_async_generated
+            and self.settings.client_async_transport is ClientAsyncTransport.GRPCLIB
+        )
+
+    @property
+    def generates_grpcio_async_server(self) -> bool:
+        return (
+            self.has_services
+            and self.settings.server_generation is ServerGeneration.ASYNC
+            and self.settings.server_async_transport is ServerAsyncTransport.GRPCIO
+        )
+
+    @property
+    def generates_grpclib_async_server(self) -> bool:
+        return (
+            self.has_services
+            and self.settings.server_generation is ServerGeneration.ASYNC
+            and self.settings.server_async_transport is ServerAsyncTransport.GRPCLIB
+        )
+
+    @property
+    def uses_grpcio(self) -> bool:
+        return self.generates_sync_client or self.generates_grpcio_async_client or self.generates_grpcio_async_server
+
+    @property
+    def uses_grpclib(self) -> bool:
+        return self.generates_grpclib_async_client or self.generates_grpclib_async_server
+
+    @property
+    def has_transport_type_checking_imports(self) -> bool:
+        return (
+            self.generates_grpcio_async_client
+            or self.generates_grpclib_async_client
+            or self.generates_grpclib_async_server
+        )
 
     def get_descriptor_name(self, source_file: FileDescriptorProto):
         return f"{source_file.name.replace('/', '_').replace('.', '_').upper()}_DESCRIPTOR"
@@ -706,6 +762,11 @@ class ServiceCompiler(ProtoContentBase):
     def py_name(self) -> str:
         return pythonize_class_name(self.proto_name)
 
+    @property
+    def grpcio_service_name(self) -> str:
+        package_part = f"{self.output_file.package}." if self.output_file.package else ""
+        return f"{package_part}{self.proto_name}"
+
 
 @dataclass(kw_only=True)
 class ServiceMethodCompiler(ProtoContentBase):
@@ -726,6 +787,10 @@ class ServiceMethodCompiler(ProtoContentBase):
     def route(self) -> str:
         package_part = f"{self.parent.output_file.package}." if self.parent.output_file.package else ""
         return f"/{package_part}{self.parent.proto_name}/{self.proto_name}"
+
+    @property
+    def grpcio_method_name(self) -> str:
+        return f"{self.parent.grpcio_service_name}.{self.proto_name}"
 
     @property
     def py_input_message_type(self) -> str:

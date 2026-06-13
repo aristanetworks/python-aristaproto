@@ -18,6 +18,9 @@ async def generate_test(
     pydantic: bool = False,
     descriptors: bool = False,
     client_generation: str = "async_sync",
+    server_generation: str = "async",
+    client_async_transport: str | None = None,
+    server_async_transport: str | None = None,
 ):
     await semaphore.acquire()
 
@@ -30,6 +33,10 @@ async def generate_test(
         options.append("pydantic")
     if descriptors:
         options.append("descriptors")
+    if client_async_transport is not None:
+        options.append(f"client_async_transport_{client_async_transport}")
+    if server_async_transport is not None:
+        options.append(f"server_async_transport_{server_async_transport}")
 
     input_dir = dir_path + "/inputs/" + name
     output_dir = dir_path + "/outputs/" + name + ("_" + "_".join(options) if options else "")
@@ -43,6 +50,9 @@ async def generate_test(
         pydantic_dataclasses=pydantic,
         google_protobuf_descriptors=descriptors,
         client_generation=client_generation,
+        server_generation=server_generation,
+        client_async_transport=client_async_transport,
+        server_async_transport=server_async_transport,
     )
 
     if options:
@@ -78,7 +88,22 @@ async def main_async():
         generate_test("conformance", semaphore),
         generate_test("deprecated", semaphore, reference=True),
         generate_test("deprecated", semaphore, client_generation="async"),
+        generate_test(
+            "deprecated",
+            semaphore,
+            client_generation="async",
+            server_generation="none",
+            client_async_transport="grpcio",
+        ),
         generate_test("documentation", semaphore, client_generation="async"),
+        generate_test(
+            "documentation",
+            semaphore,
+            client_generation="async",
+            server_generation="async",
+            client_async_transport="grpcio",
+            server_async_transport="grpcio",
+        ),
         generate_test("double", semaphore, reference=True),
         generate_test("double", semaphore),
         generate_test("encoding_decoding", semaphore),
@@ -109,6 +134,14 @@ async def main_async():
         generate_test("import_cousin_package_same_name", semaphore, descriptors=True),
         generate_test("import_cousin_package_same_name", semaphore),
         generate_test("import_service_input_message", semaphore, client_generation="async"),
+        generate_test(
+            "import_service_input_message",
+            semaphore,
+            client_generation="async",
+            server_generation="async",
+            client_async_transport="grpcio",
+            server_async_transport="grpcio",
+        ),
         generate_test("int32", semaphore, reference=True),
         generate_test("int32", semaphore),
         generate_test("invalid_field", semaphore, pydantic=True),
@@ -158,6 +191,36 @@ async def main_async():
         generate_test("rpc_empty_input_message", semaphore, client_generation="async"),
         generate_test("service_uppercase", semaphore, client_generation="async"),
         generate_test("service", semaphore),
+        generate_test(
+            "service",
+            semaphore,
+            client_generation="async",
+            server_generation="none",
+            client_async_transport="grpcio",
+        ),
+        generate_test(
+            "service",
+            semaphore,
+            client_generation="none",
+            server_generation="async",
+            server_async_transport="grpcio",
+        ),
+        generate_test(
+            "service",
+            semaphore,
+            client_generation="async",
+            server_generation="async",
+            client_async_transport="grpcio",
+            server_async_transport="grpcio",
+        ),
+        generate_test(
+            "service_separate_packages",
+            semaphore,
+            client_generation="async",
+            server_generation="async",
+            client_async_transport="grpcio",
+            server_async_transport="grpcio",
+        ),
         generate_test("signed", semaphore, reference=True),
         generate_test("signed", semaphore),
         generate_test("simple_service", semaphore),

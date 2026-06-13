@@ -2,7 +2,7 @@
 
 {# Class definition #}
 {% block class_name %}{{ service.py_name }}{% if output_file.settings.client_generation.is_async_prefixed %}Async{% endif %}Stub{% endblock %}
-{% block inherit_from %}aristaproto_grpclib.ServiceStub{% endblock %}
+{% block inherit_from %}aristaproto_grpcio.ServiceStub{% endblock %}
 
 {# Methods definition #}
 {% block method_definition %}
@@ -21,8 +21,9 @@
             ,
             *
             , timeout: "float | None" = None
-            , deadline: "Deadline | None" = None
             , metadata: "MetadataLike | None" = None
+            , credentials: "grpc.CallCredentials | None" = None
+            , wait_for_ready: "bool | None" = None
             ) -> "{% if method.server_streaming %}AsyncIterator[{{ method.py_output_message_type }}]{% else %}{{ method.py_output_message_type }}{% endif %}":
 {% endblock %}
 
@@ -35,8 +36,9 @@
             {{ method.py_input_message_type }},
             {{ method.py_output_message_type }},
             timeout=timeout,
-            deadline=deadline,
             metadata=metadata,
+            credentials=credentials,
+            wait_for_ready=wait_for_ready,
         ):
             yield response
       {% else %}
@@ -50,8 +52,9 @@
             message,
             {{ method.py_output_message_type }},
             timeout=timeout,
-            deadline=deadline,
             metadata=metadata,
+            credentials=credentials,
+            wait_for_ready=wait_for_ready,
         ):
             yield response
 
@@ -64,8 +67,9 @@
             {{ method.py_input_message_type }},
             {{ method.py_output_message_type }},
             timeout=timeout,
-            deadline=deadline,
             metadata=metadata,
+            credentials=credentials,
+            wait_for_ready=wait_for_ready,
         )
       {% else %}
         {% if method.is_input_msg_empty %}
@@ -78,8 +82,9 @@
             message,
             {{ method.py_output_message_type }},
             timeout=timeout,
-            deadline=deadline,
             metadata=metadata,
+            credentials=credentials,
+            wait_for_ready=wait_for_ready,
         )
       {% endif %}
     {% endif %}

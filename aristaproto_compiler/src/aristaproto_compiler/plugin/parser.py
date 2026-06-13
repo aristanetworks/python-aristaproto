@@ -14,7 +14,13 @@ from aristaproto_compiler.lib.google.protobuf.compiler import (
     CodeGeneratorResponseFeature,
     CodeGeneratorResponseFile,
 )
-from aristaproto_compiler.settings import ClientGeneration, ServerGeneration, Settings
+from aristaproto_compiler.settings import (
+    ClientAsyncTransport,
+    ClientGeneration,
+    ServerAsyncTransport,
+    ServerGeneration,
+    Settings,
+)
 
 from .compiler import outputfile_compiler
 from .models import (
@@ -63,7 +69,9 @@ def traverse(
 def get_settings(plugin_options: list[str]) -> Settings:
     # Synchronous clients are suitable for most users
     client_generation = ClientGeneration.SYNC
+    client_async_transport = ClientAsyncTransport.GRPCLIB
     server_generation = ServerGeneration.NONE
+    server_async_transport = ServerAsyncTransport.GRPCLIB
 
     for opt in plugin_options:
         if opt.startswith("client_generation="):
@@ -73,6 +81,13 @@ def get_settings(plugin_options: list[str]) -> Settings:
             except ValueError:
                 raise ValueError(f"Invalid client_generation option: {name}")
 
+        if opt.startswith("client_async_transport="):
+            name = opt.split("=")[1]
+            try:
+                client_async_transport = ClientAsyncTransport(name)
+            except ValueError:
+                raise ValueError(f"Invalid client_async_transport option: {name}")
+
         if opt.startswith("server_generation="):
             name = opt.split("=")[1]
             try:
@@ -80,11 +95,20 @@ def get_settings(plugin_options: list[str]) -> Settings:
             except ValueError:
                 raise ValueError(f"Invalid server_generation option: {name}")
 
+        if opt.startswith("server_async_transport="):
+            name = opt.split("=")[1]
+            try:
+                server_async_transport = ServerAsyncTransport(name)
+            except ValueError:
+                raise ValueError(f"Invalid server_async_transport option: {name}")
+
     return Settings(
         pydantic_dataclasses="pydantic_dataclasses" in plugin_options,
         google_protobuf_descriptors="google_protobuf_descriptors" in plugin_options,
         client_generation=client_generation,
+        client_async_transport=client_async_transport,
         server_generation=server_generation,
+        server_async_transport=server_async_transport,
     )
 
 
