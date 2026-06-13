@@ -3,10 +3,14 @@ from __future__ import annotations
 import asyncio
 from collections.abc import AsyncIterator
 from contextlib import asynccontextmanager
+from typing import TYPE_CHECKING
 
 import pytest
 
 from tests.util import requires_grpcio  # noqa: F401
+
+if TYPE_CHECKING:
+    from tests.outputs.service.service import DoThingRequest, DoThingResponse, GetThingResponse
 
 
 class TestGrpcioAsyncStub:
@@ -15,7 +19,7 @@ class TestGrpcioAsyncStub:
 
         self._stub = ServiceStub(channel, **kwargs)
 
-    async def do_thing(self, message, **kwargs):
+    async def do_thing(self, message, **kwargs) -> DoThingResponse:
         from tests.outputs.service.service import DoThingResponse
 
         return await self._stub._unary_unary(
@@ -25,7 +29,7 @@ class TestGrpcioAsyncStub:
             **kwargs,
         )
 
-    async def do_many_things(self, messages, **kwargs):
+    async def do_many_things(self, messages, **kwargs) -> DoThingResponse:
         from tests.outputs.service.service import DoThingRequest, DoThingResponse
 
         return await self._stub._stream_unary(
@@ -36,7 +40,7 @@ class TestGrpcioAsyncStub:
             **kwargs,
         )
 
-    async def get_thing_versions(self, message, **kwargs):
+    async def get_thing_versions(self, message, **kwargs) -> AsyncIterator[GetThingResponse]:
         from tests.outputs.service.service import GetThingResponse
 
         async for response in self._stub._unary_stream(
@@ -47,7 +51,7 @@ class TestGrpcioAsyncStub:
         ):
             yield response
 
-    async def get_different_things(self, messages, **kwargs):
+    async def get_different_things(self, messages, **kwargs) -> AsyncIterator[GetThingResponse]:
         from tests.outputs.service.service import GetThingRequest, GetThingResponse
 
         async for response in self._stub._stream_stream(
@@ -137,7 +141,7 @@ def _test_handler(
     )
 
 
-async def _async_requests(names):
+async def _async_requests(names) -> AsyncIterator[DoThingRequest]:
     from tests.outputs.service.service import DoThingRequest
 
     for name in names:
