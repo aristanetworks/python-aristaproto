@@ -1,11 +1,64 @@
 import ast
+import asyncio
 from pathlib import Path
 
-OUTPUTS = Path(__file__).parent / "outputs"
+import pytest
+
+from tests.util import protoc
+
+INPUTS = Path(__file__).parent / "inputs"
 
 
-def read_output(*parts: str) -> str:
-    return (OUTPUTS.joinpath(*parts) / "__init__.py").read_text()
+def generate_output(output_root: Path, fixture_name: str, output_name: str, **options: str) -> None:
+    output_dir = output_root / output_name
+    output_dir.mkdir()
+    stdout, stderr, returncode = asyncio.run(protoc(INPUTS / fixture_name, output_dir, **options))
+    assert returncode == 0, (stdout.decode(), stderr.decode())
+
+
+@pytest.fixture(scope="module")
+def generated_outputs(tmp_path_factory: pytest.TempPathFactory) -> Path:
+    output_root = tmp_path_factory.mktemp("grpcio_generated_outputs")
+    generate_output(output_root, "service", "service")
+    generate_output(
+        output_root,
+        "service",
+        "service_client_async_transport_grpcio",
+        client_generation="async",
+        server_generation="none",
+        client_async_transport="grpcio",
+    )
+    generate_output(
+        output_root,
+        "service",
+        "service_server_async_transport_grpcio",
+        client_generation="none",
+        server_generation="async",
+        server_async_transport="grpcio",
+    )
+    generate_output(
+        output_root,
+        "service",
+        "service_client_async_transport_grpcio_server_async_transport_grpcio",
+        client_generation="async",
+        server_generation="async",
+        client_async_transport="grpcio",
+        server_async_transport="grpcio",
+    )
+    generate_output(
+        output_root,
+        "documentation",
+        "documentation_client_async_transport_grpcio_server_async_transport_grpcio",
+        client_generation="async",
+        server_generation="async",
+        client_async_transport="grpcio",
+        server_async_transport="grpcio",
+    )
+    return output_root
+
+
+def read_output(output_root: Path, *parts: str) -> str:
+    return (output_root.joinpath(*parts) / "__init__.py").read_text()
 
 
 def get_all(source: str) -> tuple[str, ...]:
@@ -18,8 +71,8 @@ def get_all(source: str) -> tuple[str, ...]:
     raise AssertionError("__all__ assignment not found")
 
 
-def test_grpcio_async_client_generated_shape() -> None:
-    source = read_output("service_client_async_transport_grpcio", "service")
+def test_grpcio_async_client_generated_shape(generated_outputs: Path) -> None:
+    source = read_output(generated_outputs, "service_client_async_transport_grpcio", "service")
 
     assert "from aristaproto import grpcio as aristaproto_grpcio" in source
     assert "from aristaproto import grpclib as aristaproto_grpclib" not in source
@@ -32,8 +85,8 @@ def test_grpcio_async_client_generated_shape() -> None:
     assert "deadline" not in source
 
 
-def test_grpcio_async_server_generated_shape() -> None:
-    source = read_output("service_server_async_transport_grpcio", "service")
+def test_grpcio_async_server_generated_shape(generated_outputs: Path) -> None:
+    source = read_output(generated_outputs, "service_server_async_transport_grpcio", "service")
 
     assert "from aristaproto import grpcio as aristaproto_grpcio" in source
     assert "from aristaproto import grpclib as aristaproto_grpclib" not in source
@@ -42,8 +95,8 @@ def test_grpcio_async_server_generated_shape() -> None:
     assert "__mapping__" not in source
 
 
-def test_default_async_generation_remains_grpclib_shaped() -> None:
-    source = read_output("service", "service")
+def test_default_async_generation_remains_grpclib_shaped(generated_outputs: Path) -> None:
+    source = read_output(generated_outputs, "service", "service")
 
     assert "from aristaproto import grpclib as aristaproto_grpclib" in source
     assert "from aristaproto import grpcio as aristaproto_grpcio" not in source
@@ -54,8 +107,12 @@ def test_default_async_generation_remains_grpclib_shaped() -> None:
     assert "_grpcio_rpc_handler" not in source
 
 
-def test_grpcio_async_all_exports_include_messages_enum_stub_and_base() -> None:
-    source = read_output("service_client_async_transport_grpcio_server_async_transport_grpcio", "service")
+def test_grpcio_async_all_exports_include_messages_enum_stub_and_base(generated_outputs: Path) -> None:
+    source = read_output(
+        generated_outputs,
+        "service_client_async_transport_grpcio_server_async_transport_grpcio",
+        "service",
+    )
 
     assert get_all(source) == (
         "DoThingRequest",
@@ -68,8 +125,8 @@ def test_grpcio_async_all_exports_include_messages_enum_stub_and_base() -> None:
     )
 
 
-def test_default_all_exports_still_include_sync_stub() -> None:
-    source = read_output("service", "service")
+def test_default_all_exports_still_include_sync_stub(generated_outputs: Path) -> None:
+    source = read_output(generated_outputs, "service", "service")
 
     assert get_all(source) == (
         "DoThingRequest",
@@ -83,8 +140,12 @@ def test_default_all_exports_still_include_sync_stub() -> None:
     )
 
 
-def test_documentation_comments_are_preserved_on_grpcio_async_stub_and_base() -> None:
-    source = read_output("documentation_client_async_transport_grpcio_server_async_transport_grpcio", "documentation")
+def test_documentation_comments_are_preserved_on_grpcio_async_stub_and_base(generated_outputs: Path) -> None:
+    source = read_output(
+        generated_outputs,
+        "documentation_client_async_transport_grpcio_server_async_transport_grpcio",
+        "documentation",
+    )
 
     assert "class ServiceStub(aristaproto_grpcio.ServiceStub):" in source
     assert "class ServiceBase(aristaproto_grpcio.ServiceBase):" in source
