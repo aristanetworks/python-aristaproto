@@ -128,13 +128,14 @@ class ServiceStub(ABC):
             **self.__resolve_call_kwargs(timeout, metadata, credentials, wait_for_ready),
         )
         sending_task = asyncio.ensure_future(_send_request_messages(call, request_messages))
+        call.add_done_callback(_cancel_task_callback(sending_task))
         try:
             response_task = asyncio.ensure_future(call)
             done, _pending = await asyncio.wait(
                 {response_task, sending_task},
                 return_when=asyncio.FIRST_COMPLETED,
             )
-            if sending_task in done:
+            if sending_task in done and not sending_task.cancelled():
                 await sending_task
             return await response_task
         finally:
@@ -170,9 +171,10 @@ class ServiceStub(ABC):
             **self.__resolve_call_kwargs(timeout, metadata, credentials, wait_for_ready),
         )
         sending_task = asyncio.ensure_future(_send_request_messages(call, request_messages))
+        call.add_done_callback(_cancel_task_callback(sending_task))
         try:
             async for message in call:
-                if sending_task.done():
+                if sending_task.done() and not sending_task.cancelled():
                     await sending_task
                 yield message
         finally:
@@ -259,6 +261,14 @@ async def _cancel_task(task: asyncio.Future[Any]) -> None:
         await task
     except asyncio.CancelledError:
         pass
+
+
+def _cancel_task_callback(task: asyncio.Future[Any]):
+    def cancel_task(_call: grpc.aio.Call) -> None:
+        if not task.done():
+            task.cancel()
+
+    return cancel_task
 
 
 class _AsyncMessageSourceIterator(AsyncIterator[Any]):
