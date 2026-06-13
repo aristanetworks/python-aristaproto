@@ -107,33 +107,39 @@ def _make_generated_style_base():
     return TestBase
 
 
-TestBase = _make_generated_style_base()
+@pytest.fixture
+def test_base(requires_grpcio):
+    return _make_generated_style_base()
 
 
-class WorkingService(TestBase):
-    async def do_thing(self, message):
-        from tests.outputs.service.service import DoThingResponse
+@pytest.fixture
+def working_service(test_base):
+    class WorkingService(test_base):
+        async def do_thing(self, message):
+            from tests.outputs.service.service import DoThingResponse
 
-        return DoThingResponse(names=[message.name])
+            return DoThingResponse(names=[message.name])
 
-    async def do_many_things(self, messages):
-        from tests.outputs.service.service import DoThingResponse
+        async def do_many_things(self, messages):
+            from tests.outputs.service.service import DoThingResponse
 
-        return DoThingResponse(names=[message.name async for message in messages])
+            return DoThingResponse(names=[message.name async for message in messages])
 
-    async def get_thing_versions(self, message):
-        from tests.outputs.service.service import GetThingResponse
+        async def get_thing_versions(self, message):
+            from tests.outputs.service.service import GetThingResponse
 
-        for version in range(1, 4):
-            yield GetThingResponse(name=message.name, version=version)
+            for version in range(1, 4):
+                yield GetThingResponse(name=message.name, version=version)
 
-    async def get_different_things(self, messages):
-        from tests.outputs.service.service import GetThingResponse
+        async def get_different_things(self, messages):
+            from tests.outputs.service.service import GetThingResponse
 
-        version = 0
-        async for message in messages:
-            version += 1
-            yield GetThingResponse(name=message.name, version=version)
+            version = 0
+            async for message in messages:
+                version += 1
+                yield GetThingResponse(name=message.name, version=version)
+
+    return WorkingService()
 
 
 @asynccontextmanager
@@ -155,10 +161,10 @@ async def _grpcio_channel(service) -> AsyncIterator:
 
 
 @pytest.mark.asyncio
-async def test_all_cardinalities(requires_grpcio):
+async def test_all_cardinalities(requires_grpcio, working_service):
     from tests.outputs.service.service import DoThingRequest, GetThingRequest
 
-    async with _grpcio_channel(WorkingService()) as channel:
+    async with _grpcio_channel(working_service) as channel:
         client = _TestGrpcioAsyncStub(channel)
 
         unary = await client.do_thing(DoThingRequest(name="single"))
@@ -182,10 +188,10 @@ async def test_all_cardinalities(requires_grpcio):
 
 
 @pytest.mark.asyncio
-async def test_request_metadata_is_available_through_context(requires_grpcio):
+async def test_request_metadata_is_available_through_context(requires_grpcio, test_base):
     from tests.outputs.service.service import DoThingRequest, DoThingResponse
 
-    class MetadataService(TestBase):
+    class MetadataService(test_base):
         async def do_thing(self, message):
             metadata = dict(self._grpcio_context.invocation_metadata())
             return DoThingResponse(names=[metadata["authorization"]])
@@ -200,12 +206,12 @@ async def test_request_metadata_is_available_through_context(requires_grpcio):
 
 
 @pytest.mark.asyncio
-async def test_trailing_metadata_and_explicit_status_through_context(requires_grpcio):
+async def test_trailing_metadata_and_explicit_status_through_context(requires_grpcio, test_base):
     import grpc
 
     from tests.outputs.service.service import DoThingRequest, DoThingResponse
 
-    class StatusService(TestBase):
+    class StatusService(test_base):
         async def do_thing(self, message):
             self._grpcio_context.set_trailing_metadata((("result", "blocked"),))
             self._grpcio_context.set_code(grpc.StatusCode.PERMISSION_DENIED)
@@ -227,10 +233,10 @@ async def test_trailing_metadata_and_explicit_status_through_context(requires_gr
 
 
 @pytest.mark.asyncio
-async def test_context_is_isolated_across_concurrent_requests(requires_grpcio):
+async def test_context_is_isolated_across_concurrent_requests(requires_grpcio, test_base):
     from tests.outputs.service.service import DoThingRequest, DoThingResponse
 
-    class ConcurrentService(TestBase):
+    class ConcurrentService(test_base):
         async def do_thing(self, message):
             first_context = self._grpcio_context
             await asyncio.sleep(0.01)
@@ -249,12 +255,12 @@ async def test_context_is_isolated_across_concurrent_requests(requires_grpcio):
 
 
 @pytest.mark.asyncio
-async def test_unimplemented_base_methods_return_unimplemented(requires_grpcio):
+async def test_unimplemented_base_methods_return_unimplemented(requires_grpcio, test_base):
     import grpc
 
     from tests.outputs.service.service import DoThingRequest, GetThingRequest
 
-    async with _grpcio_channel(TestBase()) as channel:
+    async with _grpcio_channel(test_base()) as channel:
         client = _TestGrpcioAsyncStub(channel)
         with pytest.raises(grpc.aio.AioRpcError) as exc_info:
             await client.do_thing(DoThingRequest(name="missing"))
@@ -384,12 +390,12 @@ async def test_server_streaming_response_helper_closes_custom_async_iterators(re
 
 
 @pytest.mark.asyncio
-async def test_unary_stream_client_cancellation_closes_response_iterator(requires_grpcio):
+async def test_unary_stream_client_cancellation_closes_response_iterator(requires_grpcio, test_base):
     from tests.outputs.service.service import GetThingRequest, GetThingResponse
 
     response_iterator_closed = asyncio.Event()
 
-    class ResponseCleanupService(TestBase):
+    class ResponseCleanupService(test_base):
         async def get_thing_versions(self, message):
             try:
                 yield GetThingResponse(name=message.name, version=1)
@@ -412,12 +418,12 @@ async def test_unary_stream_client_cancellation_closes_response_iterator(require
 
 
 @pytest.mark.asyncio
-async def test_stream_stream_client_cancellation_closes_response_iterator(requires_grpcio):
+async def test_stream_stream_client_cancellation_closes_response_iterator(requires_grpcio, test_base):
     from tests.outputs.service.service import GetThingRequest, GetThingResponse
 
     response_iterator_closed = asyncio.Event()
 
-    class ResponseCleanupService(TestBase):
+    class ResponseCleanupService(test_base):
         async def get_different_things(self, messages):
             first_message = await anext(messages)
             try:
@@ -441,12 +447,12 @@ async def test_stream_stream_client_cancellation_closes_response_iterator(requir
 
 
 @pytest.mark.asyncio
-async def test_aristaproto_unary_stream_close_cancels_server_response_iterator(requires_grpcio):
+async def test_aristaproto_unary_stream_close_cancels_server_response_iterator(requires_grpcio, test_base):
     from tests.outputs.service.service import GetThingRequest, GetThingResponse
 
     response_iterator_closed = asyncio.Event()
 
-    class ResponseCleanupService(TestBase):
+    class ResponseCleanupService(test_base):
         async def get_thing_versions(self, message):
             try:
                 yield GetThingResponse(name=message.name, version=1)
@@ -465,12 +471,12 @@ async def test_aristaproto_unary_stream_close_cancels_server_response_iterator(r
 
 
 @pytest.mark.asyncio
-async def test_aristaproto_stream_stream_close_cancels_server_response_iterator(requires_grpcio):
+async def test_aristaproto_stream_stream_close_cancels_server_response_iterator(requires_grpcio, test_base):
     from tests.outputs.service.service import GetThingRequest, GetThingResponse
 
     response_iterator_closed = asyncio.Event()
 
-    class ResponseCleanupService(TestBase):
+    class ResponseCleanupService(test_base):
         async def get_different_things(self, messages):
             first_message = await anext(messages)
             try:
