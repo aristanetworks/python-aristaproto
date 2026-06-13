@@ -17,21 +17,22 @@ from tests.util import requires_grpcio  # noqa: F401
 
 @pytest.mark.asyncio
 async def test_unary_unary(requires_grpcio):
-    DoThingRequest = service_output().DoThingRequest
+    do_thing_request_type = service_output().DoThingRequest
 
     async with grpcio_channel_for_handler(grpcio_test_handler()) as channel:
-        response = await GrpcioTestStub(channel).do_thing(DoThingRequest(name="clean room"))
+        response = await GrpcioTestStub(channel).do_thing(do_thing_request_type(name="clean room"))
 
     assert response.names == ["clean room"]
 
 
 @pytest.mark.asyncio
 async def test_unary_stream(requires_grpcio):
-    GetThingRequest = service_output().GetThingRequest
+    get_thing_request_type = service_output().GetThingRequest
 
     async with grpcio_channel_for_handler(grpcio_test_handler()) as channel:
         responses = [
-            response async for response in GrpcioTestStub(channel).get_thing_versions(GetThingRequest(name="change"))
+            response
+            async for response in GrpcioTestStub(channel).get_thing_versions(get_thing_request_type(name="change"))
         ]
 
     assert [(response.name, response.version) for response in responses] == [
@@ -43,9 +44,9 @@ async def test_unary_stream(requires_grpcio):
 
 @pytest.mark.asyncio
 async def test_stream_unary_accepts_sync_request_iterable(requires_grpcio):
-    DoThingRequest = service_output().DoThingRequest
+    do_thing_request_type = service_output().DoThingRequest
 
-    requests = [DoThingRequest(name="one"), DoThingRequest(name="two")]
+    requests = [do_thing_request_type(name="one"), do_thing_request_type(name="two")]
     async with grpcio_channel_for_handler(grpcio_test_handler()) as channel:
         response = await GrpcioTestStub(channel).do_many_things(requests)
 
@@ -62,9 +63,9 @@ async def test_stream_unary_accepts_async_request_iterable(requires_grpcio):
 
 @pytest.mark.asyncio
 async def test_stream_stream(requires_grpcio):
-    GetThingRequest = service_output().GetThingRequest
+    get_thing_request_type = service_output().GetThingRequest
 
-    requests = [GetThingRequest(name="alpha"), GetThingRequest(name="beta")]
+    requests = [get_thing_request_type(name="alpha"), get_thing_request_type(name="beta")]
     async with grpcio_channel_for_handler(grpcio_test_handler()) as channel:
         responses = [response async for response in GrpcioTestStub(channel).get_different_things(requests)]
 
@@ -74,17 +75,17 @@ async def test_stream_stream(requires_grpcio):
 @pytest.mark.asyncio
 async def test_metadata_override_precedence(requires_grpcio):
     output = service_output()
-    DoThingRequest = output.DoThingRequest
-    DoThingResponse = output.DoThingResponse
+    do_thing_request_type = output.DoThingRequest
+    do_thing_response_type = output.DoThingResponse
 
     async def do_thing(request, context):
         metadata = dict(context.invocation_metadata())
-        return DoThingResponse(names=[metadata["authorization"]])
+        return do_thing_response_type(names=[metadata["authorization"]])
 
     async with grpcio_channel_for_handler(grpcio_test_handler(do_thing=do_thing)) as channel:
         client = GrpcioTestStub(channel, metadata={"authorization": "default"})
         response = await client.do_thing(
-            DoThingRequest(name="ignored"),
+            do_thing_request_type(name="ignored"),
             metadata=(("authorization", "override"),),
         )
 
@@ -96,17 +97,17 @@ async def test_timeout_override_precedence_with_deadline_exceeded(requires_grpci
     import grpc
 
     output = service_output()
-    DoThingRequest = output.DoThingRequest
-    DoThingResponse = output.DoThingResponse
+    do_thing_request_type = output.DoThingRequest
+    do_thing_response_type = output.DoThingResponse
 
     async def slow_do_thing(request, context):
         await asyncio.sleep(0.1)
-        return DoThingResponse(names=[request.name])
+        return do_thing_response_type(names=[request.name])
 
     async with grpcio_channel_for_handler(grpcio_test_handler(do_thing=slow_do_thing)) as channel:
         client = GrpcioTestStub(channel, timeout=5)
         with pytest.raises(grpc.aio.AioRpcError) as exc_info:
-            await client.do_thing(DoThingRequest(name="too late"), timeout=0.001)
+            await client.do_thing(do_thing_request_type(name="too late"), timeout=0.001)
 
     assert exc_info.value.code() is grpc.StatusCode.DEADLINE_EXCEEDED
 
@@ -115,14 +116,14 @@ async def test_timeout_override_precedence_with_deadline_exceeded(requires_grpci
 async def test_grpcio_native_error_propagation(requires_grpcio):
     import grpc
 
-    DoThingRequest = service_output().DoThingRequest
+    do_thing_request_type = service_output().DoThingRequest
 
     async def do_thing(request, context):
         await context.abort(grpc.StatusCode.UNAUTHENTICATED, "missing auth")
 
     async with grpcio_channel_for_handler(grpcio_test_handler(do_thing=do_thing)) as channel:
         with pytest.raises(grpc.aio.AioRpcError) as exc_info:
-            await GrpcioTestStub(channel).do_thing(DoThingRequest(name="blocked"))
+            await GrpcioTestStub(channel).do_thing(do_thing_request_type(name="blocked"))
 
     assert exc_info.value.code() is grpc.StatusCode.UNAUTHENTICATED
 
@@ -132,8 +133,8 @@ async def test_stream_stream_server_error_closes_request_iterator(requires_grpci
     import grpc
 
     output = service_output()
-    GetThingRequest = output.GetThingRequest
-    GetThingResponse = output.GetThingResponse
+    get_thing_request_type = output.GetThingRequest
+    get_thing_response_type = output.GetThingResponse
 
     producer_closed = asyncio.Event()
     produced_names: list[str] = []
@@ -145,14 +146,14 @@ async def test_stream_stream_server_error_closes_request_iterator(requires_grpci
                 index += 1
                 name = f"request-{index}"
                 produced_names.append(name)
-                yield GetThingRequest(name=name)
+                yield get_thing_request_type(name=name)
                 await asyncio.sleep(0.01)
         finally:
             producer_closed.set()
 
     async def get_different_things(requests, context):
         first_request = await anext(requests)
-        yield GetThingResponse(name=first_request.name, version=1)
+        yield get_thing_response_type(name=first_request.name, version=1)
         await context.abort(grpc.StatusCode.INVALID_ARGUMENT, "server stopped reading")
 
     async with grpcio_channel_for_handler(grpcio_test_handler(get_different_things=get_different_things)) as channel:
@@ -173,8 +174,8 @@ async def test_stream_stream_server_error_closes_request_iterator(requires_grpci
 @pytest.mark.asyncio
 async def test_stream_stream_response_iterator_close_closes_request_iterator(requires_grpcio):
     output = service_output()
-    GetThingRequest = output.GetThingRequest
-    GetThingResponse = output.GetThingResponse
+    get_thing_request_type = output.GetThingRequest
+    get_thing_response_type = output.GetThingResponse
 
     producer_closed = asyncio.Event()
     produced_names: list[str] = []
@@ -186,14 +187,14 @@ async def test_stream_stream_response_iterator_close_closes_request_iterator(req
                 index += 1
                 name = f"request-{index}"
                 produced_names.append(name)
-                yield GetThingRequest(name=name)
+                yield get_thing_request_type(name=name)
                 await asyncio.sleep(0.01)
         finally:
             producer_closed.set()
 
     async def get_different_things(requests, context):
         first_request = await anext(requests)
-        yield GetThingResponse(name=first_request.name, version=1)
+        yield get_thing_response_type(name=first_request.name, version=1)
         await asyncio.sleep(10)
 
     async with grpcio_channel_for_handler(grpcio_test_handler(get_different_things=get_different_things)) as channel:
@@ -212,7 +213,7 @@ async def test_stream_stream_response_iterator_close_closes_request_iterator(req
 async def test_stream_unary_server_error_closes_request_iterator(requires_grpcio):
     import grpc
 
-    DoThingRequest = service_output().DoThingRequest
+    do_thing_request_type = service_output().DoThingRequest
 
     producer_closed = asyncio.Event()
     produced_names: list[str] = []
@@ -224,7 +225,7 @@ async def test_stream_unary_server_error_closes_request_iterator(requires_grpcio
                 index += 1
                 name = f"request-{index}"
                 produced_names.append(name)
-                yield DoThingRequest(name=name)
+                yield do_thing_request_type(name=name)
                 await asyncio.sleep(0.01)
         finally:
             producer_closed.set()

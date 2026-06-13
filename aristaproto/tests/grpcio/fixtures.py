@@ -22,49 +22,49 @@ class GrpcioTestStub:
         self._stub = ServiceStub(channel, **kwargs)
 
     async def do_thing(self, message, **kwargs) -> Any:
-        DoThingResponse = service_output().DoThingResponse
+        do_thing_response_type = service_output().DoThingResponse
 
         return await self._stub._unary_unary(
             "/service.Test/DoThing",
             message,
-            DoThingResponse,
+            do_thing_response_type,
             **kwargs,
         )
 
     async def do_many_things(self, messages, **kwargs) -> Any:
         output = service_output()
-        DoThingRequest = output.DoThingRequest
-        DoThingResponse = output.DoThingResponse
+        do_thing_request_type = output.DoThingRequest
+        do_thing_response_type = output.DoThingResponse
 
         return await self._stub._stream_unary(
             "/service.Test/DoManyThings",
             messages,
-            DoThingRequest,
-            DoThingResponse,
+            do_thing_request_type,
+            do_thing_response_type,
             **kwargs,
         )
 
     async def get_thing_versions(self, message, **kwargs) -> AsyncIterator[Any]:
-        GetThingResponse = service_output().GetThingResponse
+        get_thing_response_type = service_output().GetThingResponse
 
         async for response in self._stub._unary_stream(
             "/service.Test/GetThingVersions",
             message,
-            GetThingResponse,
+            get_thing_response_type,
             **kwargs,
         ):
             yield response
 
     async def get_different_things(self, messages, **kwargs) -> AsyncIterator[Any]:
         output = service_output()
-        GetThingRequest = output.GetThingRequest
-        GetThingResponse = output.GetThingResponse
+        get_thing_request_type = output.GetThingRequest
+        get_thing_response_type = output.GetThingResponse
 
         async for response in self._stub._stream_stream(
             "/service.Test/GetDifferentThings",
             messages,
-            GetThingRequest,
-            GetThingResponse,
+            get_thing_request_type,
+            get_thing_response_type,
             **kwargs,
         ):
             yield response
@@ -104,59 +104,59 @@ def grpcio_test_handler(
     import grpc
 
     output = service_output()
-    DoThingRequest = output.DoThingRequest
-    DoThingResponse = output.DoThingResponse
-    GetThingRequest = output.GetThingRequest
-    GetThingResponse = output.GetThingResponse
+    do_thing_request_type = output.DoThingRequest
+    do_thing_response_type = output.DoThingResponse
+    get_thing_request_type = output.GetThingRequest
+    get_thing_response_type = output.GetThingResponse
 
     async def default_do_thing(request, context):
-        return DoThingResponse(names=[request.name])
+        return do_thing_response_type(names=[request.name])
 
     async def default_do_many_things(requests, context):
-        return DoThingResponse(names=[request.name async for request in requests])
+        return do_thing_response_type(names=[request.name async for request in requests])
 
     async def default_get_thing_versions(request, context):
         for version in range(1, 4):
-            yield GetThingResponse(name=request.name, version=version)
+            yield get_thing_response_type(name=request.name, version=version)
 
     async def default_get_different_things(requests, context):
         version = 0
         async for request in requests:
             version += 1
-            yield GetThingResponse(name=request.name, version=version)
+            yield get_thing_response_type(name=request.name, version=version)
 
     return grpc.method_handlers_generic_handler(
         "service.Test",
         {
             "DoThing": grpc.unary_unary_rpc_method_handler(
                 do_thing or default_do_thing,
-                request_deserializer=DoThingRequest.FromString,
-                response_serializer=DoThingResponse.SerializeToString,
+                request_deserializer=do_thing_request_type.FromString,
+                response_serializer=do_thing_response_type.SerializeToString,
             ),
             "DoManyThings": grpc.stream_unary_rpc_method_handler(
                 do_many_things or default_do_many_things,
-                request_deserializer=DoThingRequest.FromString,
-                response_serializer=DoThingResponse.SerializeToString,
+                request_deserializer=do_thing_request_type.FromString,
+                response_serializer=do_thing_response_type.SerializeToString,
             ),
             "GetThingVersions": grpc.unary_stream_rpc_method_handler(
                 get_thing_versions or default_get_thing_versions,
-                request_deserializer=GetThingRequest.FromString,
-                response_serializer=GetThingResponse.SerializeToString,
+                request_deserializer=get_thing_request_type.FromString,
+                response_serializer=get_thing_response_type.SerializeToString,
             ),
             "GetDifferentThings": grpc.stream_stream_rpc_method_handler(
                 get_different_things or default_get_different_things,
-                request_deserializer=GetThingRequest.FromString,
-                response_serializer=GetThingResponse.SerializeToString,
+                request_deserializer=get_thing_request_type.FromString,
+                response_serializer=get_thing_response_type.SerializeToString,
             ),
         },
     )
 
 
 async def async_requests(names) -> AsyncIterator[Any]:
-    DoThingRequest = service_output().DoThingRequest
+    do_thing_request_type = service_output().DoThingRequest
 
     for name in names:
-        yield DoThingRequest(name=name)
+        yield do_thing_request_type(name=name)
 
 
 async def assert_producer_closed(producer_closed: asyncio.Event, produced_names: list[str]) -> None:
@@ -173,28 +173,28 @@ def make_generated_style_base():
     from aristaproto.grpcio import ServiceBase
 
     output = service_output()
-    DoThingRequest = output.DoThingRequest
-    DoThingResponse = output.DoThingResponse
-    GetThingRequest = output.GetThingRequest
-    GetThingResponse = output.GetThingResponse
+    do_thing_request_type = output.DoThingRequest
+    do_thing_response_type = output.DoThingResponse
+    get_thing_request_type = output.GetThingRequest
+    get_thing_response_type = output.GetThingResponse
 
     class TestBase(ServiceBase):
-        async def do_thing(self, message: DoThingRequest) -> DoThingResponse:
+        async def do_thing(self, message: do_thing_request_type) -> do_thing_response_type:
             await self._grpcio_unimplemented()
 
-        async def do_many_things(self, messages: AsyncIterator[DoThingRequest]) -> DoThingResponse:
+        async def do_many_things(self, messages: AsyncIterator[do_thing_request_type]) -> do_thing_response_type:
             await self._grpcio_unimplemented()
 
-        async def get_thing_versions(self, message: GetThingRequest) -> AsyncIterator[GetThingResponse]:
+        async def get_thing_versions(self, message: get_thing_request_type) -> AsyncIterator[get_thing_response_type]:
             await self._grpcio_unimplemented()
-            yield GetThingResponse()
+            yield get_thing_response_type()
 
         async def get_different_things(
             self,
-            messages: AsyncIterator[GetThingRequest],
-        ) -> AsyncIterator[GetThingResponse]:
+            messages: AsyncIterator[get_thing_request_type],
+        ) -> AsyncIterator[get_thing_response_type]:
             await self._grpcio_unimplemented()
-            yield GetThingResponse()
+            yield get_thing_response_type()
 
         def _grpcio_rpc_handler(self):
             return self._grpcio_generic_rpc_handler(
@@ -202,23 +202,23 @@ def make_generated_style_base():
                 {
                     "DoThing": self._grpcio_unary_unary_rpc_method_handler(
                         self.do_thing,
-                        DoThingRequest,
-                        DoThingResponse,
+                        do_thing_request_type,
+                        do_thing_response_type,
                     ),
                     "DoManyThings": self._grpcio_stream_unary_rpc_method_handler(
                         self.do_many_things,
-                        DoThingRequest,
-                        DoThingResponse,
+                        do_thing_request_type,
+                        do_thing_response_type,
                     ),
                     "GetThingVersions": self._grpcio_unary_stream_rpc_method_handler(
                         self.get_thing_versions,
-                        GetThingRequest,
-                        GetThingResponse,
+                        get_thing_request_type,
+                        get_thing_response_type,
                     ),
                     "GetDifferentThings": self._grpcio_stream_stream_rpc_method_handler(
                         self.get_different_things,
-                        GetThingRequest,
-                        GetThingResponse,
+                        get_thing_request_type,
+                        get_thing_response_type,
                     ),
                 },
             )

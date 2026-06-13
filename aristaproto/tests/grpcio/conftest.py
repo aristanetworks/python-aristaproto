@@ -15,27 +15,27 @@ def grpcio_test_base(requires_grpcio):
 def grpcio_working_service(grpcio_test_base):
     class WorkingService(grpcio_test_base):
         async def do_thing(self, message):
-            DoThingResponse = service_output().DoThingResponse
+            do_thing_response_type = service_output().DoThingResponse
 
-            return DoThingResponse(names=[message.name])
+            return do_thing_response_type(names=[message.name])
 
         async def do_many_things(self, messages):
-            DoThingResponse = service_output().DoThingResponse
+            do_thing_response_type = service_output().DoThingResponse
 
-            return DoThingResponse(names=[message.name async for message in messages])
+            return do_thing_response_type(names=[message.name async for message in messages])
 
         async def get_thing_versions(self, message):
-            GetThingResponse = service_output().GetThingResponse
+            get_thing_response_type = service_output().GetThingResponse
 
             for version in range(1, 4):
-                yield GetThingResponse(name=message.name, version=version)
+                yield get_thing_response_type(name=message.name, version=version)
 
         async def get_different_things(self, messages):
-            GetThingResponse = service_output().GetThingResponse
+            get_thing_response_type = service_output().GetThingResponse
 
             version = 0
             async for message in messages:
                 version += 1
-                yield GetThingResponse(name=message.name, version=version)
+                yield get_thing_response_type(name=message.name, version=version)
 
     return WorkingService()
