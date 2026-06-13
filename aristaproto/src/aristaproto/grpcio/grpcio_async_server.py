@@ -4,16 +4,18 @@ import inspect
 from abc import ABC
 from collections.abc import AsyncIterable, AsyncIterator, Awaitable, Callable
 from contextvars import ContextVar
-from typing import TYPE_CHECKING, NoReturn
+from typing import TYPE_CHECKING, NoReturn, TypeAlias, TypeVar
 
 import grpc
 
 if TYPE_CHECKING:
     import grpc.aio
 
-    from aristaproto._types import IProtoMessage, T
+    from aristaproto._types import GrpcioProtoMessage
 
-ServerStreamingResponse = AsyncIterable["IProtoMessage"] | Awaitable[None] | None
+RequestT = TypeVar("RequestT", bound="GrpcioProtoMessage")
+ResponseT = TypeVar("ResponseT", bound="GrpcioProtoMessage")
+ServerStreamingResponse: TypeAlias = AsyncIterable[ResponseT] | Awaitable[None] | None
 SERVER_STREAMING_RETURN_ERROR = (
     "Server-streaming RPC handlers must return an AsyncIterable or None; "
     "async def handlers must not return response values"
@@ -49,11 +51,11 @@ class ServiceBase(ABC):
 
     def _grpcio_unary_unary_rpc_method_handler(
         self,
-        handler: Callable[[IProtoMessage], Awaitable[T]],
-        request_type: type[IProtoMessage],
-        response_type: type[IProtoMessage],
+        handler: Callable[[RequestT], Awaitable[ResponseT]],
+        request_type: type[RequestT],
+        response_type: type[ResponseT],
     ) -> grpc.RpcMethodHandler:
-        async def rpc_handler(request: IProtoMessage, context: grpc.aio.ServicerContext) -> T:
+        async def rpc_handler(request: RequestT, context: grpc.aio.ServicerContext) -> ResponseT:
             token = self.__grpcio_context.set(context)
             try:
                 return await handler(request)
@@ -68,14 +70,14 @@ class ServiceBase(ABC):
 
     def _grpcio_unary_stream_rpc_method_handler(
         self,
-        handler: Callable[[IProtoMessage], ServerStreamingResponse],
-        request_type: type[IProtoMessage],
-        response_type: type[IProtoMessage],
+        handler: Callable[[RequestT], ServerStreamingResponse[ResponseT]],
+        request_type: type[RequestT],
+        response_type: type[ResponseT],
     ) -> grpc.RpcMethodHandler:
         async def rpc_handler(
-            request: IProtoMessage,
+            request: RequestT,
             context: grpc.aio.ServicerContext,
-        ) -> AsyncIterator[IProtoMessage]:
+        ) -> AsyncIterator[ResponseT]:
             token = self.__grpcio_context.set(context)
             try:
                 async for response in _ensure_async_response_iterable(handler(request)):
@@ -91,14 +93,14 @@ class ServiceBase(ABC):
 
     def _grpcio_stream_unary_rpc_method_handler(
         self,
-        handler: Callable[[AsyncIterator[IProtoMessage]], Awaitable[T]],
-        request_type: type[IProtoMessage],
-        response_type: type[IProtoMessage],
+        handler: Callable[[AsyncIterator[RequestT]], Awaitable[ResponseT]],
+        request_type: type[RequestT],
+        response_type: type[ResponseT],
     ) -> grpc.RpcMethodHandler:
         async def rpc_handler(
-            request_iterator: AsyncIterator[IProtoMessage],
+            request_iterator: AsyncIterator[RequestT],
             context: grpc.aio.ServicerContext,
-        ) -> T:
+        ) -> ResponseT:
             token = self.__grpcio_context.set(context)
             try:
                 return await handler(request_iterator)
@@ -113,14 +115,14 @@ class ServiceBase(ABC):
 
     def _grpcio_stream_stream_rpc_method_handler(
         self,
-        handler: Callable[[AsyncIterator[IProtoMessage]], ServerStreamingResponse],
-        request_type: type[IProtoMessage],
-        response_type: type[IProtoMessage],
+        handler: Callable[[AsyncIterator[RequestT]], ServerStreamingResponse[ResponseT]],
+        request_type: type[RequestT],
+        response_type: type[ResponseT],
     ) -> grpc.RpcMethodHandler:
         async def rpc_handler(
-            request_iterator: AsyncIterator[IProtoMessage],
+            request_iterator: AsyncIterator[RequestT],
             context: grpc.aio.ServicerContext,
-        ) -> AsyncIterator[IProtoMessage]:
+        ) -> AsyncIterator[ResponseT]:
             token = self.__grpcio_context.set(context)
             try:
                 async for response in _ensure_async_response_iterable(handler(request_iterator)):
@@ -135,7 +137,9 @@ class ServiceBase(ABC):
         )
 
 
-async def _ensure_async_response_iterable(response_iter: ServerStreamingResponse) -> AsyncIterator[IProtoMessage]:
+async def _ensure_async_response_iterable(
+    response_iter: ServerStreamingResponse[ResponseT],
+) -> AsyncIterator[ResponseT]:
     if isinstance(response_iter, AsyncIterable):
         iterator = response_iter.__aiter__()
         try:

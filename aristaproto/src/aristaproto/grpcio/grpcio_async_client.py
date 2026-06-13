@@ -2,18 +2,20 @@ from __future__ import annotations
 
 from abc import ABC
 from collections.abc import AsyncIterable, AsyncIterator, Collection, Iterable, Iterator, Mapping
-from typing import TYPE_CHECKING, Any, cast
+from typing import TYPE_CHECKING, Any, TypeVar, cast
 
 if TYPE_CHECKING:
     import grpc
     import grpc.aio
 
-    from aristaproto._types import IProtoMessage, T
+    from aristaproto._types import GrpcioProtoMessage
 
 
 Value = str | bytes
 MetadataLike = Mapping[str, Value] | Collection[tuple[str, Value]]
-MessageSource = Iterable["IProtoMessage"] | AsyncIterable["IProtoMessage"]
+RequestT = TypeVar("RequestT", bound="GrpcioProtoMessage")
+ResponseT = TypeVar("ResponseT", bound="GrpcioProtoMessage")
+MessageSource = Iterable["GrpcioProtoMessage"] | AsyncIterable["GrpcioProtoMessage"]
 
 
 class ServiceStub(ABC):
@@ -53,14 +55,14 @@ class ServiceStub(ABC):
     async def _unary_unary(
         self,
         route: str,
-        request: IProtoMessage,
-        response_type: type[T],
+        request: GrpcioProtoMessage,
+        response_type: type[ResponseT],
         *,
         timeout: float | None = None,
         metadata: MetadataLike | None = None,
         credentials: grpc.CallCredentials | None = None,
         wait_for_ready: bool | None = None,
-    ) -> T:
+    ) -> ResponseT:
         """Make a unary request and return the response."""
         rpc = self.channel.unary_unary(
             route,
@@ -75,14 +77,14 @@ class ServiceStub(ABC):
     async def _unary_stream(
         self,
         route: str,
-        request: IProtoMessage,
-        response_type: type[T],
+        request: GrpcioProtoMessage,
+        response_type: type[ResponseT],
         *,
         timeout: float | None = None,
         metadata: MetadataLike | None = None,
         credentials: grpc.CallCredentials | None = None,
         wait_for_ready: bool | None = None,
-    ) -> AsyncIterator[T]:
+    ) -> AsyncIterator[ResponseT]:
         """Make a unary request and return the stream response iterator."""
         rpc = self.channel.unary_stream(
             route,
@@ -104,14 +106,14 @@ class ServiceStub(ABC):
         self,
         route: str,
         request_iterator: MessageSource,
-        request_type: type[IProtoMessage],
-        response_type: type[T],
+        request_type: type[RequestT],
+        response_type: type[ResponseT],
         *,
         timeout: float | None = None,
         metadata: MetadataLike | None = None,
         credentials: grpc.CallCredentials | None = None,
         wait_for_ready: bool | None = None,
-    ) -> T:
+    ) -> ResponseT:
         """Make a stream request and return the response."""
         rpc = self.channel.stream_unary(
             route,
@@ -134,14 +136,14 @@ class ServiceStub(ABC):
         self,
         route: str,
         request_iterator: MessageSource,
-        request_type: type[IProtoMessage],
-        response_type: type[T],
+        request_type: type[RequestT],
+        response_type: type[ResponseT],
         *,
         timeout: float | None = None,
         metadata: MetadataLike | None = None,
         credentials: grpc.CallCredentials | None = None,
         wait_for_ready: bool | None = None,
-    ) -> AsyncIterator[T]:
+    ) -> AsyncIterator[ResponseT]:
         """
         Make a stream request and return an AsyncIterator to iterate over response
         messages.
@@ -178,7 +180,7 @@ def _normalize_metadata(metadata: MetadataLike | None) -> tuple[tuple[str, Value
 class _AsyncMessageSourceIterator(AsyncIterator[Any]):
     def __init__(self, messages: MessageSource) -> None:
         self._messages = messages
-        self._iterator: AsyncIterator[IProtoMessage] | Iterator[IProtoMessage] | None = None
+        self._iterator: AsyncIterator[GrpcioProtoMessage] | Iterator[GrpcioProtoMessage] | None = None
         self._closed = False
         self._close_called = False
         self._iterating = False
@@ -186,7 +188,7 @@ class _AsyncMessageSourceIterator(AsyncIterator[Any]):
     def __aiter__(self) -> _AsyncMessageSourceIterator:
         return self
 
-    async def __anext__(self) -> IProtoMessage:
+    async def __anext__(self) -> GrpcioProtoMessage:
         if self._closed:
             raise StopAsyncIteration
 
@@ -209,17 +211,17 @@ class _AsyncMessageSourceIterator(AsyncIterator[Any]):
             raise StopAsyncIteration
         return message
 
-    async def _next_message(self) -> IProtoMessage:
+    async def _next_message(self) -> GrpcioProtoMessage:
         iterator = self._get_iterator()
         if isinstance(self._messages, AsyncIterable):
-            return await anext(cast("AsyncIterator[IProtoMessage]", iterator))
+            return await anext(cast("AsyncIterator[GrpcioProtoMessage]", iterator))
 
         try:
-            return next(cast("Iterator[IProtoMessage]", iterator))
+            return next(cast("Iterator[GrpcioProtoMessage]", iterator))
         except StopIteration:
             raise StopAsyncIteration from None
 
-    def _get_iterator(self) -> AsyncIterator[IProtoMessage] | Iterator[IProtoMessage]:
+    def _get_iterator(self) -> AsyncIterator[GrpcioProtoMessage] | Iterator[GrpcioProtoMessage]:
         if self._iterator is None:
             if isinstance(self._messages, AsyncIterable):
                 self._iterator = self._messages.__aiter__()
