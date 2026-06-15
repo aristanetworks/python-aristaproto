@@ -138,7 +138,7 @@ def grpcio_test_handler(
     get_thing_request_type = output.GetThingRequest
     get_thing_response_type = output.GetThingResponse
 
-    async def default_do_thing(request, context):
+    async def default_do_thing(request, context):  # NOSONAR: grpcio aio handlers are coroutine-shaped.
         return do_thing_response_type(names=[request.name])
 
     async def default_do_many_things(requests, context):
