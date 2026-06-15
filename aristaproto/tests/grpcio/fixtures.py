@@ -2,11 +2,28 @@ from __future__ import annotations
 
 import asyncio
 import importlib
-from collections.abc import AsyncIterator
+from collections.abc import AsyncIterable, AsyncIterator, Iterable
 from contextlib import asynccontextmanager
-from typing import Any
+from typing import TYPE_CHECKING, Any, Protocol
 
 import pytest
+
+if TYPE_CHECKING:
+    import grpc
+
+    class DoThingRequest(Protocol):
+        name: str
+
+    class DoThingResponse(Protocol):
+        names: list[str]
+
+    class GetThingRequest(Protocol):
+        name: str
+
+    class GetThingResponse(Protocol):
+        name: str
+        version: int
+
 
 SERVICE_OUTPUT = "tests.outputs.service_client_async_transport_grpcio_server_async_transport_grpcio.service"
 
@@ -16,12 +33,12 @@ def service_output():
 
 
 class GrpcioTestStub:
-    def __init__(self, channel, **kwargs):
+    def __init__(self, channel: grpc.aio.Channel, **kwargs: Any) -> None:
         from aristaproto.grpcio import ServiceStub
 
         self._stub = ServiceStub(channel, **kwargs)
 
-    async def do_thing(self, message, **kwargs) -> Any:
+    async def do_thing(self, message: DoThingRequest, **kwargs: Any) -> DoThingResponse:
         do_thing_response_type = service_output().DoThingResponse
 
         return await self._stub._unary_unary(
@@ -31,7 +48,11 @@ class GrpcioTestStub:
             **kwargs,
         )
 
-    async def do_many_things(self, messages, **kwargs) -> Any:
+    async def do_many_things(
+        self,
+        messages: AsyncIterable[DoThingRequest] | Iterable[DoThingRequest],
+        **kwargs: Any,
+    ) -> DoThingResponse:
         output = service_output()
         do_thing_request_type = output.DoThingRequest
         do_thing_response_type = output.DoThingResponse
@@ -44,7 +65,11 @@ class GrpcioTestStub:
             **kwargs,
         )
 
-    async def get_thing_versions(self, message, **kwargs) -> AsyncIterator[Any]:
+    async def get_thing_versions(
+        self,
+        message: GetThingRequest,
+        **kwargs: Any,
+    ) -> AsyncIterator[GetThingResponse]:
         get_thing_response_type = service_output().GetThingResponse
 
         async for response in self._stub._unary_stream(
@@ -55,7 +80,11 @@ class GrpcioTestStub:
         ):
             yield response
 
-    async def get_different_things(self, messages, **kwargs) -> AsyncIterator[Any]:
+    async def get_different_things(
+        self,
+        messages: AsyncIterable[GetThingRequest] | Iterable[GetThingRequest],
+        **kwargs: Any,
+    ) -> AsyncIterator[GetThingResponse]:
         output = service_output()
         get_thing_request_type = output.GetThingRequest
         get_thing_response_type = output.GetThingResponse
@@ -71,7 +100,7 @@ class GrpcioTestStub:
 
 
 @asynccontextmanager
-async def grpcio_channel_for_handler(handler) -> AsyncIterator:
+async def grpcio_channel_for_handler(handler: Any) -> AsyncIterator[grpc.aio.Channel]:
     import grpc
 
     server = grpc.aio.server()
@@ -89,7 +118,7 @@ async def grpcio_channel_for_handler(handler) -> AsyncIterator:
 
 
 @asynccontextmanager
-async def grpcio_channel_for_service(service) -> AsyncIterator:
+async def grpcio_channel_for_service(service: Any) -> AsyncIterator[grpc.aio.Channel]:
     async with grpcio_channel_for_handler(service._grpcio_rpc_handler()) as channel:
         yield channel
 
@@ -152,7 +181,7 @@ def grpcio_test_handler(
     )
 
 
-async def async_requests(names) -> AsyncIterator[Any]:
+async def async_requests(names: Iterable[str]) -> AsyncIterator[DoThingRequest]:
     do_thing_request_type = service_output().DoThingRequest
 
     for name in names:

@@ -250,17 +250,12 @@ async def _done_writing(call: grpc.aio.StreamStreamCall | grpc.aio.StreamUnaryCa
 
 async def _cancel_task(task: asyncio.Future[Any]) -> None:
     if task.done():
-        try:
+        if not task.cancelled():
             task.exception()
-        except asyncio.CancelledError:
-            pass
         return
 
     task.cancel()
-    try:
-        await task
-    except asyncio.CancelledError:
-        pass
+    await asyncio.gather(task, return_exceptions=True)
 
 
 def _cancel_task_callback(task: asyncio.Future[Any]):
