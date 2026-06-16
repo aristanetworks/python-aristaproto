@@ -188,6 +188,35 @@ async def async_requests(names: Iterable[str]) -> AsyncIterator[DoThingRequest]:
         yield do_thing_request_type(name=name)
 
 
+def close_tracked_get_thing_requests() -> tuple[AsyncIterator[GetThingRequest], asyncio.Event, list[str]]:
+    get_thing_request_type = service_output().GetThingRequest
+    return _close_tracked_requests(get_thing_request_type)
+
+
+def close_tracked_do_thing_requests() -> tuple[AsyncIterator[DoThingRequest], asyncio.Event, list[str]]:
+    do_thing_request_type = service_output().DoThingRequest
+    return _close_tracked_requests(do_thing_request_type)
+
+
+def _close_tracked_requests(request_type: Any) -> tuple[AsyncIterator[Any], asyncio.Event, list[str]]:
+    producer_closed = asyncio.Event()
+    produced_names: list[str] = []
+
+    async def requests():
+        try:
+            index = 0
+            while True:
+                index += 1
+                name = f"request-{index}"
+                produced_names.append(name)
+                yield request_type(name=name)
+                await asyncio.sleep(0.01)
+        finally:
+            producer_closed.set()
+
+    return requests(), producer_closed, produced_names
+
+
 async def assert_producer_closed(producer_closed: asyncio.Event, produced_names: list[str]) -> None:
     try:
         await asyncio.wait_for(producer_closed.wait(), timeout=1)
@@ -196,6 +225,42 @@ async def assert_producer_closed(producer_closed: asyncio.Event, produced_names:
             "request iterator was not closed after the RPC failed; "
             f"produced {len(produced_names)} request(s): {produced_names}",
         )
+
+
+async def close_tracked_get_thing_responses(
+    name: str,
+    response_iterator_closed: asyncio.Event,
+) -> AsyncIterator[GetThingResponse]:
+    get_thing_response_type = service_output().GetThingResponse
+
+    try:
+        yield get_thing_response_type(name=name, version=1)
+        await asyncio.sleep(10)
+    finally:
+        response_iterator_closed.set()
+
+
+async def assert_response_iterator_closed(response_iterator_closed: asyncio.Event) -> None:
+    await asyncio.wait_for(response_iterator_closed.wait(), timeout=1)
+
+
+def unary_stream_response_cleanup_service(grpcio_test_base, response_iterator_closed: asyncio.Event):
+    class UnaryStreamResponseCleanupService(grpcio_test_base):
+        async def get_thing_versions(self, message):
+            async for response in close_tracked_get_thing_responses(message.name, response_iterator_closed):
+                yield response
+
+    return UnaryStreamResponseCleanupService()
+
+
+def stream_stream_response_cleanup_service(grpcio_test_base, response_iterator_closed: asyncio.Event):
+    class StreamStreamResponseCleanupService(grpcio_test_base):
+        async def get_different_things(self, messages):
+            first_message = await anext(messages)
+            async for response in close_tracked_get_thing_responses(first_message.name, response_iterator_closed):
+                yield response
+
+    return StreamStreamResponseCleanupService()
 
 
 def make_generated_style_base():

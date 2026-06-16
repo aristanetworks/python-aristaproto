@@ -4,7 +4,15 @@ import asyncio
 
 import pytest
 
-from tests.grpcio.fixtures import GrpcioTestStub, grpcio_channel_for_service, service_output
+from tests.grpcio.fixtures import (
+    GrpcioTestStub,
+    assert_response_iterator_closed,
+    close_tracked_get_thing_responses,
+    grpcio_channel_for_service,
+    service_output,
+    stream_stream_response_cleanup_service,
+    unary_stream_response_cleanup_service,
+)
 from tests.util import requires_grpcio  # noqa: F401
 
 
@@ -202,24 +210,16 @@ async def test_server_streaming_response_helper_accepts_awaited_none(requires_gr
 async def test_server_streaming_response_helper_closes_async_iterables(requires_grpcio):
     from aristaproto.grpcio.grpcio_async_server import _ensure_async_response_iterable
 
-    get_thing_response_type = service_output().GetThingResponse
-
     response_iterator_closed = asyncio.Event()
-
-    async def responses():
-        try:
-            yield get_thing_response_type(name="first")
-            await asyncio.sleep(10)
-        finally:
-            response_iterator_closed.set()
-
-    response_iterator = _ensure_async_response_iterable(responses())
+    response_iterator = _ensure_async_response_iterable(
+        close_tracked_get_thing_responses("first", response_iterator_closed)
+    )
 
     first_response = await anext(response_iterator)
     assert first_response.name == "first"
 
     await response_iterator.aclose()
-    await asyncio.wait_for(response_iterator_closed.wait(), timeout=1)
+    await assert_response_iterator_closed(response_iterator_closed)
 
 
 @pytest.mark.asyncio
@@ -253,7 +253,7 @@ async def test_server_streaming_response_helper_closes_custom_async_iterators(re
     assert first_response.name == "first"
 
     await response_iterator.aclose()
-    await asyncio.wait_for(responses.closed.wait(), timeout=1)
+    await assert_response_iterator_closed(responses.closed)
 
 
 @pytest.mark.asyncio
@@ -264,15 +264,9 @@ async def test_unary_stream_client_cancellation_closes_response_iterator(require
 
     response_iterator_closed = asyncio.Event()
 
-    class ResponseCleanupService(grpcio_test_base):
-        async def get_thing_versions(self, message):
-            try:
-                yield get_thing_response_type(name=message.name, version=1)
-                await asyncio.sleep(10)
-            finally:
-                response_iterator_closed.set()
-
-    async with grpcio_channel_for_service(ResponseCleanupService()) as channel:
+    async with grpcio_channel_for_service(
+        unary_stream_response_cleanup_service(grpcio_test_base, response_iterator_closed)
+    ) as channel:
         call = channel.unary_stream(
             "/service.Test/GetThingVersions",
             request_serializer=get_thing_request_type.SerializeToString,
@@ -283,7 +277,7 @@ async def test_unary_stream_client_cancellation_closes_response_iterator(require
         assert (first_response.name, first_response.version) == ("versions", 1)
 
         call.cancel()
-        await asyncio.wait_for(response_iterator_closed.wait(), timeout=1)
+        await assert_response_iterator_closed(response_iterator_closed)
 
 
 @pytest.mark.asyncio
@@ -294,16 +288,9 @@ async def test_stream_stream_client_cancellation_closes_response_iterator(requir
 
     response_iterator_closed = asyncio.Event()
 
-    class ResponseCleanupService(grpcio_test_base):
-        async def get_different_things(self, messages):
-            first_message = await anext(messages)
-            try:
-                yield get_thing_response_type(name=first_message.name, version=1)
-                await asyncio.sleep(10)
-            finally:
-                response_iterator_closed.set()
-
-    async with grpcio_channel_for_service(ResponseCleanupService()) as channel:
+    async with grpcio_channel_for_service(
+        stream_stream_response_cleanup_service(grpcio_test_base, response_iterator_closed)
+    ) as channel:
         call = channel.stream_stream(
             "/service.Test/GetDifferentThings",
             request_serializer=get_thing_request_type.SerializeToString,
@@ -314,57 +301,42 @@ async def test_stream_stream_client_cancellation_closes_response_iterator(requir
         assert (first_response.name, first_response.version) == ("alpha", 1)
 
         call.cancel()
-        await asyncio.wait_for(response_iterator_closed.wait(), timeout=1)
+        await assert_response_iterator_closed(response_iterator_closed)
 
 
 @pytest.mark.asyncio
 async def test_aristaproto_unary_stream_close_cancels_server_response_iterator(requires_grpcio, grpcio_test_base):
     output = service_output()
     get_thing_request_type = output.GetThingRequest
-    get_thing_response_type = output.GetThingResponse
 
     response_iterator_closed = asyncio.Event()
 
-    class ResponseCleanupService(grpcio_test_base):
-        async def get_thing_versions(self, message):
-            try:
-                yield get_thing_response_type(name=message.name, version=1)
-                await asyncio.sleep(10)
-            finally:
-                response_iterator_closed.set()
-
-    async with grpcio_channel_for_service(ResponseCleanupService()) as channel:
+    async with grpcio_channel_for_service(
+        unary_stream_response_cleanup_service(grpcio_test_base, response_iterator_closed)
+    ) as channel:
         responses = GrpcioTestStub(channel).get_thing_versions(get_thing_request_type(name="versions"))
 
         first_response = await anext(responses)
         assert (first_response.name, first_response.version) == ("versions", 1)
 
         await responses.aclose()
-        await asyncio.wait_for(response_iterator_closed.wait(), timeout=1)
+        await assert_response_iterator_closed(response_iterator_closed)
 
 
 @pytest.mark.asyncio
 async def test_aristaproto_stream_stream_close_cancels_server_response_iterator(requires_grpcio, grpcio_test_base):
     output = service_output()
     get_thing_request_type = output.GetThingRequest
-    get_thing_response_type = output.GetThingResponse
 
     response_iterator_closed = asyncio.Event()
 
-    class ResponseCleanupService(grpcio_test_base):
-        async def get_different_things(self, messages):
-            first_message = await anext(messages)
-            try:
-                yield get_thing_response_type(name=first_message.name, version=1)
-                await asyncio.sleep(10)
-            finally:
-                response_iterator_closed.set()
-
-    async with grpcio_channel_for_service(ResponseCleanupService()) as channel:
+    async with grpcio_channel_for_service(
+        stream_stream_response_cleanup_service(grpcio_test_base, response_iterator_closed)
+    ) as channel:
         responses = GrpcioTestStub(channel).get_different_things([get_thing_request_type(name="alpha")])
 
         first_response = await anext(responses)
         assert (first_response.name, first_response.version) == ("alpha", 1)
 
         await responses.aclose()
-        await asyncio.wait_for(response_iterator_closed.wait(), timeout=1)
+        await assert_response_iterator_closed(response_iterator_closed)

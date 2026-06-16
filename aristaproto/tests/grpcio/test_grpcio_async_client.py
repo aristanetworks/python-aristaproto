@@ -8,6 +8,8 @@ from tests.grpcio.fixtures import (
     GrpcioTestStub,
     assert_producer_closed,
     async_requests,
+    close_tracked_do_thing_requests,
+    close_tracked_get_thing_requests,
     grpcio_channel_for_handler,
     grpcio_test_handler,
     service_output,
@@ -132,24 +134,8 @@ async def test_grpcio_native_error_propagation(requires_grpcio):
 async def test_stream_stream_server_error_closes_request_iterator(requires_grpcio):
     import grpc
 
-    output = service_output()
-    get_thing_request_type = output.GetThingRequest
-    get_thing_response_type = output.GetThingResponse
-
-    producer_closed = asyncio.Event()
-    produced_names: list[str] = []
-
-    async def requests():
-        try:
-            index = 0
-            while True:
-                index += 1
-                name = f"request-{index}"
-                produced_names.append(name)
-                yield get_thing_request_type(name=name)
-                await asyncio.sleep(0.01)
-        finally:
-            producer_closed.set()
+    get_thing_response_type = service_output().GetThingResponse
+    requests, producer_closed, produced_names = close_tracked_get_thing_requests()
 
     async def get_different_things(requests, context):
         first_request = await anext(requests)
@@ -157,7 +143,7 @@ async def test_stream_stream_server_error_closes_request_iterator(requires_grpci
         await context.abort(grpc.StatusCode.INVALID_ARGUMENT, "server stopped reading")
 
     async with grpcio_channel_for_handler(grpcio_test_handler(get_different_things=get_different_things)) as channel:
-        responses = GrpcioTestStub(channel).get_different_things(requests())
+        responses = GrpcioTestStub(channel).get_different_things(requests)
 
         first_response = await anext(responses)
         assert (first_response.name, first_response.version) == ("request-1", 1)
@@ -173,24 +159,8 @@ async def test_stream_stream_server_error_closes_request_iterator(requires_grpci
 
 @pytest.mark.asyncio
 async def test_stream_stream_response_iterator_close_closes_request_iterator(requires_grpcio):
-    output = service_output()
-    get_thing_request_type = output.GetThingRequest
-    get_thing_response_type = output.GetThingResponse
-
-    producer_closed = asyncio.Event()
-    produced_names: list[str] = []
-
-    async def requests():
-        try:
-            index = 0
-            while True:
-                index += 1
-                name = f"request-{index}"
-                produced_names.append(name)
-                yield get_thing_request_type(name=name)
-                await asyncio.sleep(0.01)
-        finally:
-            producer_closed.set()
+    get_thing_response_type = service_output().GetThingResponse
+    requests, producer_closed, produced_names = close_tracked_get_thing_requests()
 
     async def get_different_things(requests, context):
         first_request = await anext(requests)
@@ -198,7 +168,7 @@ async def test_stream_stream_response_iterator_close_closes_request_iterator(req
         await asyncio.sleep(10)
 
     async with grpcio_channel_for_handler(grpcio_test_handler(get_different_things=get_different_things)) as channel:
-        responses = GrpcioTestStub(channel).get_different_things(requests())
+        responses = GrpcioTestStub(channel).get_different_things(requests)
 
         first_response = await anext(responses)
         assert (first_response.name, first_response.version) == ("request-1", 1)
@@ -213,22 +183,7 @@ async def test_stream_stream_response_iterator_close_closes_request_iterator(req
 async def test_stream_unary_server_error_closes_request_iterator(requires_grpcio):
     import grpc
 
-    do_thing_request_type = service_output().DoThingRequest
-
-    producer_closed = asyncio.Event()
-    produced_names: list[str] = []
-
-    async def requests():
-        try:
-            index = 0
-            while True:
-                index += 1
-                name = f"request-{index}"
-                produced_names.append(name)
-                yield do_thing_request_type(name=name)
-                await asyncio.sleep(0.01)
-        finally:
-            producer_closed.set()
+    requests, producer_closed, produced_names = close_tracked_do_thing_requests()
 
     async def do_many_things(requests, context):
         await anext(requests)
@@ -236,7 +191,7 @@ async def test_stream_unary_server_error_closes_request_iterator(requires_grpcio
 
     async with grpcio_channel_for_handler(grpcio_test_handler(do_many_things=do_many_things)) as channel:
         with pytest.raises(grpc.aio.AioRpcError) as exc_info:
-            await GrpcioTestStub(channel).do_many_things(requests())
+            await GrpcioTestStub(channel).do_many_things(requests)
 
         assert exc_info.value.code() is grpc.StatusCode.INVALID_ARGUMENT
         await assert_producer_closed(producer_closed, produced_names)
