@@ -17,39 +17,6 @@ from tests.util import requires_grpcio  # noqa: F401
 
 
 @pytest.mark.asyncio
-async def test_all_cardinalities(requires_grpcio, grpcio_working_service):
-    output = service_output()
-    do_thing_request_type = output.DoThingRequest
-    get_thing_request_type = output.GetThingRequest
-
-    async with grpcio_channel_for_service(grpcio_working_service) as channel:
-        client = GrpcioTestStub(channel)
-
-        unary = await client.do_thing(do_thing_request_type(name="single"))
-        stream_unary = await client.do_many_things(
-            [do_thing_request_type(name="one"), do_thing_request_type(name="two")]
-        )
-        unary_stream = [
-            response async for response in client.get_thing_versions(get_thing_request_type(name="versions"))
-        ]
-        stream_stream = [
-            response
-            async for response in client.get_different_things(
-                [get_thing_request_type(name="alpha"), get_thing_request_type(name="beta")]
-            )
-        ]
-
-    assert unary.names == ["single"]
-    assert stream_unary.names == ["one", "two"]
-    assert [(response.name, response.version) for response in unary_stream] == [
-        ("versions", 1),
-        ("versions", 2),
-        ("versions", 3),
-    ]
-    assert [(response.name, response.version) for response in stream_stream] == [("alpha", 1), ("beta", 2)]
-
-
-@pytest.mark.asyncio
 async def test_request_metadata_is_available_through_context(requires_grpcio, grpcio_test_base):
     output = service_output()
     do_thing_request_type = output.DoThingRequest
@@ -120,35 +87,6 @@ async def test_context_is_isolated_across_concurrent_requests(requires_grpcio, g
         )
 
     assert sorted(response.names for response in responses) == [["one", "1"], ["two", "2"]]
-
-
-@pytest.mark.asyncio
-async def test_unimplemented_base_methods_return_unimplemented(requires_grpcio, grpcio_test_base):
-    import grpc
-
-    output = service_output()
-    do_thing_request_type = output.DoThingRequest
-    get_thing_request_type = output.GetThingRequest
-
-    async with grpcio_channel_for_service(grpcio_test_base()) as channel:
-        client = GrpcioTestStub(channel)
-        with pytest.raises(grpc.aio.AioRpcError) as exc_info:
-            await client.do_thing(do_thing_request_type(name="missing"))
-        assert exc_info.value.code() is grpc.StatusCode.UNIMPLEMENTED
-
-        with pytest.raises(grpc.aio.AioRpcError) as exc_info:
-            await client.do_many_things([do_thing_request_type(name="missing")])
-        assert exc_info.value.code() is grpc.StatusCode.UNIMPLEMENTED
-
-        with pytest.raises(grpc.aio.AioRpcError) as exc_info:
-            responses = client.get_thing_versions(get_thing_request_type(name="missing"))
-            await anext(responses)
-        assert exc_info.value.code() is grpc.StatusCode.UNIMPLEMENTED
-
-        with pytest.raises(grpc.aio.AioRpcError) as exc_info:
-            responses = client.get_different_things([get_thing_request_type(name="missing")])
-            await anext(responses)
-        assert exc_info.value.code() is grpc.StatusCode.UNIMPLEMENTED
 
 
 @pytest.mark.asyncio

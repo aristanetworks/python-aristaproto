@@ -1,14 +1,12 @@
 from __future__ import annotations
 
 import importlib
-from collections.abc import AsyncIterator
-from contextlib import asynccontextmanager
 
 import pytest
 
+from tests.grpcio.fixtures import grpcio_channel_for_handler, grpcio_channel_for_service, service_output
 from tests.util import requires_grpcio  # noqa: F401
 
-SERVICE_OUTPUT = "tests.outputs.service_client_async_transport_grpcio_server_async_transport_grpcio.service"
 IMPORT_SERVICE_OUTPUT = (
     "tests.outputs.import_service_input_message_client_async_transport_grpcio_server_async_transport_grpcio."
     "import_service_input_message"
@@ -19,45 +17,9 @@ SEPARATE_PACKAGE_OUTPUT = (
 )
 
 
-@asynccontextmanager
-async def grpcio_channel(service) -> AsyncIterator:
-    import grpc
-
-    server = grpc.aio.server()
-    server.add_generic_rpc_handlers((service._grpcio_rpc_handler(),))
-    port = server.add_insecure_port("127.0.0.1:0")
-    await server.start()
-
-    channel = grpc.aio.insecure_channel(f"127.0.0.1:{port}")
-    try:
-        await channel.channel_ready()
-        yield channel
-    finally:
-        await channel.close()
-        await server.stop(0)
-
-
-@asynccontextmanager
-async def grpcio_raw_channel(handler) -> AsyncIterator:
-    import grpc
-
-    server = grpc.aio.server()
-    server.add_generic_rpc_handlers((handler,))
-    port = server.add_insecure_port("127.0.0.1:0")
-    await server.start()
-
-    channel = grpc.aio.insecure_channel(f"127.0.0.1:{port}")
-    try:
-        await channel.channel_ready()
-        yield channel
-    finally:
-        await channel.close()
-        await server.stop(0)
-
-
 @pytest.mark.asyncio
 async def test_generated_grpcio_async_service_supports_all_cardinalities(requires_grpcio) -> None:
-    output = importlib.import_module(SERVICE_OUTPUT)
+    output = service_output()
     do_thing_request_type = output.DoThingRequest
     do_thing_response_type = output.DoThingResponse
     get_thing_request_type = output.GetThingRequest
@@ -82,7 +44,7 @@ async def test_generated_grpcio_async_service_supports_all_cardinalities(require
                 version += 1
                 yield get_thing_response_type(name=message.name, version=version)
 
-    async with grpcio_channel(Service()) as channel:
+    async with grpcio_channel_for_service(Service()) as channel:
         client = test_stub_type(channel)
         unary = await client.do_thing(do_thing_request_type(name="single"))
         stream_unary = await client.do_many_things(
@@ -112,13 +74,13 @@ async def test_generated_grpcio_async_service_supports_all_cardinalities(require
 async def test_generated_grpcio_async_unimplemented_base_returns_unimplemented(requires_grpcio) -> None:
     import grpc
 
-    output = importlib.import_module(SERVICE_OUTPUT)
+    output = service_output()
     do_thing_request_type = output.DoThingRequest
     get_thing_request_type = output.GetThingRequest
     test_base_type = output.TestBase
     test_stub_type = output.TestStub
 
-    async with grpcio_channel(test_base_type()) as channel:
+    async with grpcio_channel_for_service(test_base_type()) as channel:
         client = test_stub_type(channel)
 
         with pytest.raises(grpc.aio.AioRpcError) as exc_info:
@@ -161,7 +123,7 @@ async def test_generated_grpcio_async_service_imported_messages_round_trip(requi
         async def do_thing_3(self, message):
             return request_response_type(value=message.nested_argument)
 
-    async with grpcio_channel(Service()) as channel:
+    async with grpcio_channel_for_service(Service()) as channel:
         client = test_stub_type(channel)
         response = await client.do_thing(request_message_type(argument=11))
         child_response = await client.do_thing_2(child_request_message_type(child_argument=22))
@@ -196,7 +158,7 @@ async def test_generated_grpcio_async_separate_package_imports_round_trip(requir
                 version += 1
                 yield messages.GetThingResponse(name=message.name, version=version)
 
-    async with grpcio_channel(Service()) as channel:
+    async with grpcio_channel_for_service(Service()) as channel:
         client = test_stub_type(channel)
         unary = await client.do_thing(messages.DoThingRequest(name="external"))
         stream_unary = await client.do_many_things(
@@ -241,7 +203,7 @@ async def test_generated_grpcio_async_deprecated_stub_method_warns_once(requires
         },
     )
 
-    async with grpcio_raw_channel(handler) as channel:
+    async with grpcio_channel_for_handler(handler) as channel:
         with pytest.warns(DeprecationWarning) as warnings:
             response = await test_service_stub_type(channel).deprecated_func()
 
