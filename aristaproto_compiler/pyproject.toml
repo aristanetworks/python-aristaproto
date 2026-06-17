@@ -1,6 +1,6 @@
 [project]
 name = "aristaproto_compiler"
-version = "2.0.0.dev0"
+version = "2.0.0.dev1"
 description = "Compiler for aristaproto"
 authors = [
     { name = "Arista Networks", email = "ansible@arista.com" },
@@ -12,7 +12,7 @@ keywords = ["protobuf", "gRPC", "compiler"]
 requires-python = ">=3.10,<4.0"
 dependencies = [
     # TODO use the version from the current repo?
-    "aristaproto~=2.0.0.dev0",
+    "aristaproto~=2.0.0.dev1",
     # "aristaproto",
     "ruff>=0.9.3",
     "jinja2>=3.0.3",

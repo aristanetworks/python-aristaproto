@@ -1,6 +1,6 @@
 [project]
 name = "aristaproto"
-version = "2.0.0.dev0"
+version = "2.0.0.dev1"
 description = "Arista Protobuf / Python gRPC bindings generator & library"
 authors = [
     { name = "Arista Networks", email = "ansible@arista.com" },

@@ -13,4 +13,4 @@ compiler. The output of the `compiler_lib` test should be used.
     `FieldDescriptorProto` optional.
 
 In the compiler, you also need to compile the [plugin.proto](https://github.com/protocolbuffers/protobuf/blob/main/src/google/protobuf/compiler/plugin.proto)
-file in `src/aristaproto_compiler/lib/google.protobug/compiler/__init__.py`.
+file in `src/aristaproto_compiler/lib/google/protobuf/compiler/__init__.py`.
