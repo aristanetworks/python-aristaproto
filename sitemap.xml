@@ -1,0 +1,31 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
+    <url>
+         <loc>https://aristanetworks.github.io/python-aristaproto/</loc>
+         <lastmod>2026-06-17</lastmod>
+    </url>
+    <url>
+         <loc>https://aristanetworks.github.io/python-aristaproto/api/</loc>
+         <lastmod>2026-06-17</lastmod>
+    </url>
+    <url>
+         <loc>https://aristanetworks.github.io/python-aristaproto/descriptors/</loc>
+         <lastmod>2026-06-17</lastmod>
+    </url>
+    <url>
+         <loc>https://aristanetworks.github.io/python-aristaproto/development/</loc>
+         <lastmod>2026-06-17</lastmod>
+    </url>
+    <url>
+         <loc>https://aristanetworks.github.io/python-aristaproto/getting-started/</loc>
+         <lastmod>2026-06-17</lastmod>
+    </url>
+    <url>
+         <loc>https://aristanetworks.github.io/python-aristaproto/tutorial/clients/</loc>
+         <lastmod>2026-06-17</lastmod>
+    </url>
+    <url>
+         <loc>https://aristanetworks.github.io/python-aristaproto/tutorial/messages/</loc>
+         <lastmod>2026-06-17</lastmod>
+    </url>
+</urlset>
