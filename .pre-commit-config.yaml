@@ -1,5 +1,6 @@
 ci:
   autofix_prs: false
+  skip: [buf-format]
 
 repos:
   - repo: https://github.com/astral-sh/ruff-pre-commit
@@ -11,7 +12,7 @@ repos:
         args: ["aristaproto/src", "aristaproto/tests", "aristaproto_compiler/src", "aristaproto_compiler/tests"]
 
   - repo: https://github.com/bufbuild/buf
-    rev: v1.70.0
+    rev: v1.71.0
     hooks:
       - id: buf-format
         files: ^aristaproto_compiler/tests/inputs/.*\.proto$
