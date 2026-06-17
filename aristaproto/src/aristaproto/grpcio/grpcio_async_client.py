@@ -1,0 +1,342 @@
+from __future__ import annotations
+
+import asyncio
+from abc import ABC
+from collections.abc import AsyncIterable, AsyncIterator, Collection, Iterable, Iterator, Mapping
+from typing import TYPE_CHECKING, Any, TypeVar, cast
+
+import grpc
+
+if TYPE_CHECKING:
+    import grpc.aio
+
+    from aristaproto._types import GrpcioProtoMessage
+
+
+Value = str | bytes
+MetadataLike = Mapping[str, Value] | Collection[tuple[str, Value]]
+RequestT = TypeVar("RequestT", bound="GrpcioProtoMessage")
+ResponseT = TypeVar("ResponseT", bound="GrpcioProtoMessage")
+MessageSource = Iterable["GrpcioProtoMessage"] | AsyncIterable["GrpcioProtoMessage"]
+
+
+class ServiceStub(ABC):
+    """
+    Base class for async grpcio clients.
+    """
+
+    def __init__(
+        self,
+        channel: grpc.aio.Channel,
+        *,
+        timeout: float | None = None,
+        metadata: MetadataLike | None = None,
+        credentials: grpc.CallCredentials | None = None,
+        wait_for_ready: bool | None = None,
+    ) -> None:
+        self.channel = channel
+        self.timeout = timeout
+        self.metadata = metadata
+        self.credentials = credentials
+        self.wait_for_ready = wait_for_ready
+
+    def __resolve_call_kwargs(
+        self,
+        timeout: float | None,
+        metadata: MetadataLike | None,
+        credentials: grpc.CallCredentials | None,
+        wait_for_ready: bool | None,
+    ) -> dict[str, Any]:
+        return {
+            "timeout": self.timeout if timeout is None else timeout,
+            "metadata": _normalize_metadata(self.metadata if metadata is None else metadata),
+            "credentials": self.credentials if credentials is None else credentials,
+            "wait_for_ready": self.wait_for_ready if wait_for_ready is None else wait_for_ready,
+        }
+
+    async def _unary_unary(
+        self,
+        route: str,
+        request: GrpcioProtoMessage,
+        response_type: type[ResponseT],
+        *,
+        timeout: float | None = None,
+        metadata: MetadataLike | None = None,
+        credentials: grpc.CallCredentials | None = None,
+        wait_for_ready: bool | None = None,
+    ) -> ResponseT:
+        """Make a unary request and return the response."""
+        rpc = self.channel.unary_unary(
+            route,
+            request_serializer=type(request).SerializeToString,
+            response_deserializer=response_type.FromString,
+        )
+        return await rpc(
+            request,
+            **self.__resolve_call_kwargs(timeout, metadata, credentials, wait_for_ready),
+        )
+
+    async def _unary_stream(
+        self,
+        route: str,
+        request: GrpcioProtoMessage,
+        response_type: type[ResponseT],
+        *,
+        timeout: float | None = None,
+        metadata: MetadataLike | None = None,
+        credentials: grpc.CallCredentials | None = None,
+        wait_for_ready: bool | None = None,
+    ) -> AsyncIterator[ResponseT]:
+        """Make a unary request and return the stream response iterator."""
+        rpc = self.channel.unary_stream(
+            route,
+            request_serializer=type(request).SerializeToString,
+            response_deserializer=response_type.FromString,
+        )
+        call = rpc(
+            request,
+            **self.__resolve_call_kwargs(timeout, metadata, credentials, wait_for_ready),
+        )
+        try:
+            async for message in call:
+                yield message
+        finally:
+            if not call.done():
+                call.cancel()
+
+    async def _stream_unary(
+        self,
+        route: str,
+        request_iterator: MessageSource,
+        request_type: type[RequestT],
+        response_type: type[ResponseT],
+        *,
+        timeout: float | None = None,
+        metadata: MetadataLike | None = None,
+        credentials: grpc.CallCredentials | None = None,
+        wait_for_ready: bool | None = None,
+    ) -> ResponseT:
+        """Make a stream request and return the response."""
+        rpc = self.channel.stream_unary(
+            route,
+            request_serializer=request_type.SerializeToString,
+            response_deserializer=response_type.FromString,
+        )
+        request_messages = _AsyncMessageSourceIterator(request_iterator)
+        call = rpc(
+            None,
+            **self.__resolve_call_kwargs(timeout, metadata, credentials, wait_for_ready),
+        )
+        sending_task = asyncio.ensure_future(_send_request_messages(call, request_messages))
+        call.add_done_callback(_cancel_task_callback(sending_task))
+        try:
+            response_task = asyncio.ensure_future(call)
+            done, _pending = await asyncio.wait(
+                {response_task, sending_task},
+                return_when=asyncio.FIRST_COMPLETED,
+            )
+            if sending_task in done and not sending_task.cancelled():
+                await sending_task
+            return await response_task
+        finally:
+            if not call.done():
+                call.cancel()
+            await request_messages.aclose()
+            await _cancel_task(sending_task)
+
+    async def _stream_stream(
+        self,
+        route: str,
+        request_iterator: MessageSource,
+        request_type: type[RequestT],
+        response_type: type[ResponseT],
+        *,
+        timeout: float | None = None,
+        metadata: MetadataLike | None = None,
+        credentials: grpc.CallCredentials | None = None,
+        wait_for_ready: bool | None = None,
+    ) -> AsyncIterator[ResponseT]:
+        """
+        Make a stream request and return an AsyncIterator to iterate over response
+        messages.
+        """
+        rpc = self.channel.stream_stream(
+            route,
+            request_serializer=request_type.SerializeToString,
+            response_deserializer=response_type.FromString,
+        )
+        request_messages = _AsyncMessageSourceIterator(request_iterator)
+        call = rpc(
+            None,
+            **self.__resolve_call_kwargs(timeout, metadata, credentials, wait_for_ready),
+        )
+        sending_task = asyncio.ensure_future(_send_request_messages(call, request_messages))
+        call.add_done_callback(_cancel_task_callback(sending_task))
+        try:
+            async for message in call:
+                if sending_task.done() and not sending_task.cancelled():
+                    await sending_task
+                yield message
+        finally:
+            if not call.done():
+                call.cancel()
+            await request_messages.aclose()
+            await _cancel_task(sending_task)
+
+
+def _normalize_metadata(metadata: MetadataLike | None) -> tuple[tuple[str, Value], ...] | None:
+    if metadata is None:
+        return None
+
+    if isinstance(metadata, Mapping):
+        return cast("tuple[tuple[str, Value], ...]", tuple(metadata.items()))
+
+    return cast("tuple[tuple[str, Value], ...]", tuple(metadata))
+
+
+async def _send_request_messages(
+    call: grpc.aio.StreamStreamCall | grpc.aio.StreamUnaryCall,
+    messages: MessageSource,
+) -> None:
+    try:
+        if isinstance(messages, AsyncIterable):
+            async for message in messages:
+                if not await _write_request_message(call, message):
+                    return
+        else:
+            for message in messages:
+                if not await _write_request_message(call, message):
+                    return
+        await _done_writing(call)
+    except asyncio.CancelledError:
+        raise
+    except Exception:
+        if not call.done():
+            call.cancel()
+        raise
+
+
+async def _write_request_message(
+    call: grpc.aio.StreamStreamCall | grpc.aio.StreamUnaryCall,
+    message: GrpcioProtoMessage,
+) -> bool:
+    if call.done():
+        return False
+
+    try:
+        await call.write(message)
+    except grpc.aio.AioRpcError:
+        return False
+    except asyncio.InvalidStateError:
+        if call.done():
+            return False
+        raise
+    return True
+
+
+async def _done_writing(call: grpc.aio.StreamStreamCall | grpc.aio.StreamUnaryCall) -> None:
+    if call.done():
+        return
+
+    try:
+        await call.done_writing()
+    except grpc.aio.AioRpcError:
+        return
+    except asyncio.InvalidStateError:
+        if call.done():
+            return
+        raise
+
+
+async def _cancel_task(task: asyncio.Future[Any]) -> None:
+    if task.done():
+        if not task.cancelled():
+            task.exception()
+        return
+
+    task.cancel()
+    await asyncio.gather(task, return_exceptions=True)
+
+
+def _cancel_task_callback(task: asyncio.Future[Any]):
+    def cancel_task(_call: grpc.aio.Call) -> None:
+        if not task.done():
+            task.cancel()
+
+    return cancel_task
+
+
+class _AsyncMessageSourceIterator(AsyncIterator[Any]):
+    def __init__(self, messages: MessageSource) -> None:
+        self._messages = messages
+        self._iterator: AsyncIterator[GrpcioProtoMessage] | Iterator[GrpcioProtoMessage] | None = None
+        self._closed = False
+        self._close_called = False
+        self._iterating = False
+
+    def __aiter__(self) -> _AsyncMessageSourceIterator:
+        return self
+
+    async def __anext__(self) -> GrpcioProtoMessage:
+        if self._closed:
+            raise StopAsyncIteration
+
+        self._iterating = True
+        try:
+            message = await self._next_message()
+        except StopAsyncIteration:
+            self._iterating = False
+            await self.aclose()
+            raise
+        except BaseException:
+            self._iterating = False
+            if self._closed:
+                await self._close_iterator()
+            raise
+
+        self._iterating = False
+        if self._closed:
+            await self._close_iterator()
+            raise StopAsyncIteration
+        return message
+
+    async def _next_message(self) -> GrpcioProtoMessage:
+        iterator = self._get_iterator()
+        if isinstance(self._messages, AsyncIterable):
+            return await anext(cast("AsyncIterator[GrpcioProtoMessage]", iterator))
+
+        try:
+            return next(cast("Iterator[GrpcioProtoMessage]", iterator))
+        except StopIteration:
+            raise StopAsyncIteration from None
+
+    def _get_iterator(self) -> AsyncIterator[GrpcioProtoMessage] | Iterator[GrpcioProtoMessage]:
+        if self._iterator is None:
+            if isinstance(self._messages, AsyncIterable):
+                self._iterator = self._messages.__aiter__()
+            else:
+                self._iterator = iter(self._messages)
+        return self._iterator
+
+    async def aclose(self) -> None:
+        self._closed = True
+        if not self._iterating:
+            await self._close_iterator()
+
+    async def _close_iterator(self) -> None:
+        if self._close_called:
+            return
+
+        self._close_called = True
+        iterator = self._iterator
+        if iterator is None:
+            return
+
+        close = getattr(iterator, "aclose", None)
+        if close is not None:
+            await close()
+            return
+
+        close = getattr(iterator, "close", None)
+        if close is not None:
+            close()

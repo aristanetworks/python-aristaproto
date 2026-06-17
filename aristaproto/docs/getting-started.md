@@ -63,8 +63,10 @@ are supported.
 
   - Synchronous clients rely on the `grpcio` package. Make sure to enable the `grpcio` extra package when installing
     aristaproto to use them.
-  - Asynchronous clients rely on the `grpclib` package. Make sure to enable the `grpclib` extra package when installing
-    aristaproto to use them.
+  - Asynchronous clients use `grpclib` by default. Make sure to enable the `grpclib` extra package when using the
+    default async transport.
+  - Asynchronous clients can also use `grpcio` AsyncIO by setting `client_async_transport=grpcio`. Make sure to enable
+    the `grpcio` extra package when using this transport.
 
 To choose which clients to generate, use the `client_generation` option of aristaproto. It supports the following
 values:
@@ -80,16 +82,42 @@ values:
         Synchronous clients are generated with the Sync suffix, and asynchronous clients are generated with the Async
         suffix.
 
-For example, `protoc -I . --python_aristaproto_out=lib example.proto --python_aristaproto_opt=client_generation=async`
-will only generate asynchronous clients.
+For example, this will only generate asynchronous clients using the default `grpclib` transport:
+
+```sh
+protoc -I . \
+  --python_aristaproto_out=lib \
+  --python_aristaproto_opt=client_generation=async \
+  example.proto
+```
+
+To generate asynchronous clients using `grpcio` AsyncIO, also set `client_async_transport=grpcio`:
+
+```sh
+protoc -I . \
+  --python_aristaproto_out=lib \
+  --python_aristaproto_opt=client_generation=async \
+  --python_aristaproto_opt=client_async_transport=grpcio \
+  example.proto
+```
 
 ##### Servers
 
 By default, aristaproto will not generate server base classes. To enable them, set the `server_generation` option to
 `async` with `--python_aristaproto_opt=server_generation=async`.
 
-These base classes will be asynchronous and rely on `grpclib`. To use them, make sure to install `aristaproto` with the
-`grpclib` extra package.
+These base classes use `grpclib` by default. To generate server bases using `grpcio` AsyncIO, also set
+`server_async_transport=grpcio`:
+
+```sh
+protoc -I . \
+  --python_aristaproto_out=lib \
+  --python_aristaproto_opt=server_generation=async \
+  --python_aristaproto_opt=server_async_transport=grpcio \
+  example.proto
+```
+
+Use the matching runtime extra for the selected transport: `aristaproto[grpclib]` or `aristaproto[grpcio]`.
 
 
 ## Installation
@@ -100,6 +128,12 @@ The package `aristaproto` can be installed from PyPI using `pip`:
 pip install aristaproto[all]
 ```
 
+The optional extras are:
+
+  - `aristaproto[grpcio]` for synchronous `grpcio` clients and asynchronous `grpcio.aio` clients and servers.
+  - `aristaproto[grpclib]` for asynchronous `grpclib` clients and servers.
+  - `aristaproto[all]` for all supported runtime extras.
+
 !!! warning
     Make sure that the proto files were generated with a version of `aristaproto_compiler` that is compatible with your
     version of `aristaproto`.
@@ -108,7 +142,7 @@ pip install aristaproto[all]
 
 ## Basic usage
 
-If you successfuly compiled the `example.proto` file from the compiler documentation, you should now be able to use it!
+If you successfully compiled the `example.proto` file from the compiler documentation, you should now be able to use it!
 
 ```python
 >>> from lib.helloworld import HelloWorld
@@ -121,15 +155,10 @@ b'\n\x0cHello world!'
 {'message': 'Hello world!'}
 ```
 
-!!! Warning
-    The rest of the documentation is not up to date.
+## gRPC support
 
-
-## Async gRPC Support
-
-The generated code includes [grpclib](https://grpclib.readthedocs.io/en/latest) based
-stub (client and server) classes for rpc services declared in the input proto files.
-It is enabled by default.
+The generated code can include client stubs and server base classes for RPC services declared in proto files.
+Synchronous clients use `grpcio`. Asynchronous clients and servers can use either `grpclib` or `grpcio` AsyncIO.
 
 
 Given a service definition similar to the one below:
@@ -159,63 +188,76 @@ service Echo {
 }
 ```
 
-The generated client can be used like so:
+### Async grpclib client
 
 ```python
 import asyncio
 from grpclib.client import Channel
-import echo
+from echo import EchoRequest, EchoStub
 
 
 async def main():
     channel = Channel(host="127.0.0.1", port=50051)
-    service = echo.EchoStub(channel)
-    response = await service.echo(value="hello", extra_times=1)
+    service = EchoStub(channel)
+    response = await service.echo(EchoRequest(value="hello", extra_times=1))
     print(response)
 
-    async for response in service.echo_stream(value="hello", extra_times=1):
+    async for response in service.echo_stream(EchoRequest(value="hello", extra_times=1)):
         print(response)
 
-    # don't forget to close the channel when you're done!
     channel.close()
 
 asyncio.run(main())
-
-# outputs
-EchoResponse(values=['hello', 'hello'])
-EchoStreamResponse(value='hello')
-EchoStreamResponse(value='hello')
 ```
 
+### Async grpcio client
 
-The server-facing stubs can be used to implement a Python
-gRPC server.
-To use them, simply subclass the base class in the generated files and override the
-service methods:
+Generate the client with `client_generation=async,client_async_transport=grpcio`.
 
 ```python
-from echo import EchoBase
-from grpclib.server import Server
+import grpc
+
+from echo import EchoRequest, EchoStub
+
+
+async with grpc.aio.insecure_channel("127.0.0.1:50051") as channel:
+    client = EchoStub(channel)
+    response = await client.echo(EchoRequest(value="hello", extra_times=1), timeout=2.0)
+
+    async for response in client.echo_stream(EchoRequest(value="hello", extra_times=1)):
+        print(response)
+```
+
+### Async grpcio server
+
+Generate the base class with `server_generation=async,server_async_transport=grpcio`.
+
+```python
 from typing import AsyncIterator
+
+import grpc
+
+from echo import EchoBase, EchoRequest, EchoResponse, EchoStreamResponse
 
 
 class EchoService(EchoBase):
-    async def echo(self, value: str, extra_times: int) -> "EchoResponse":
-        return value
+    async def echo(self, message: EchoRequest) -> EchoResponse:
+        return EchoResponse(values=[message.value])
 
     async def echo_stream(
-        self, value: str, extra_times: int
-    ) -> AsyncIterator["EchoStreamResponse"]:
-        for _ in range(extra_times):
-            yield value
+        self, message: EchoRequest
+    ) -> AsyncIterator[EchoStreamResponse]:
+        for _ in range(message.extra_times + 1):
+            yield EchoStreamResponse(value=message.value)
 
 
 async def start_server():
-    HOST = "127.0.0.1"
-    PORT = 1337
-    server = Server([EchoService()])
-    await server.start(HOST, PORT)
-    await server.serve_forever()
+    server = grpc.aio.server()
+    service = EchoService()
+    server.add_generic_rpc_handlers((service._grpcio_rpc_handler(),))
+    server.add_insecure_port("127.0.0.1:50051")
+    await server.start()
+    await server.wait_for_termination()
 ```
 
 ## JSON

@@ -13,6 +13,9 @@ async def protoc(
     pydantic_dataclasses: bool = False,
     google_protobuf_descriptors: bool = False,
     client_generation: str = "async_sync",
+    server_generation: str = "async",
+    client_async_transport: str | None = None,
+    server_async_transport: str | None = None,
 ):
     resolved_path: Path = Path(path).resolve()
     resolved_output_dir: Path = Path(output_dir).resolve()
@@ -28,7 +31,7 @@ async def protoc(
     ]
 
     if not reference:
-        command.insert(3, "--python_aristaproto_opt=server_generation=async")
+        command.insert(3, f"--python_aristaproto_opt=server_generation={server_generation}")
         command.insert(3, f"--python_aristaproto_opt=client_generation={client_generation}")
 
         if pydantic_dataclasses:
@@ -36,6 +39,12 @@ async def protoc(
 
         if google_protobuf_descriptors:
             command.insert(3, "--python_aristaproto_opt=google_protobuf_descriptors")
+
+        if client_async_transport is not None:
+            command.insert(3, f"--python_aristaproto_opt=client_async_transport={client_async_transport}")
+
+        if server_async_transport is not None:
+            command.insert(3, f"--python_aristaproto_opt=server_async_transport={server_async_transport}")
 
     proc = await asyncio.create_subprocess_exec(
         *command,

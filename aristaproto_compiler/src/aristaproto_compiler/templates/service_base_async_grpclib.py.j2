@@ -1,0 +1,70 @@
+class {{ (service.py_name + "Base") | add_to_all }}(aristaproto_grpclib.ServiceBase):
+    {% if service.comment %}
+    """
+    {{ service.comment | indent(4) }}
+    """
+    {% endif %}
+
+    {% for method in service.methods %}
+    async def {{ method.py_name }}(self
+        {%- if not method.client_streaming -%}
+            , message: "{{ method.py_input_message_type }}"
+        {%- else -%}
+            {# Client streaming: need a request iterator instead #}
+            , messages: "AsyncIterator[{{ method.py_input_message_type }}]"
+        {%- endif -%}
+            ) -> {% if method.server_streaming %}"AsyncIterator[{{ method.py_output_message_type }}]"{% else %}"{{ method.py_output_message_type }}"{% endif %}:
+        {% if method.comment %}
+        """
+        {{ method.comment | indent(8) }}
+        """
+        {% endif %}
+
+        raise grpclib.GRPCError(grpclib.const.Status.UNIMPLEMENTED)
+        {% if method.server_streaming %}
+        {# yielding here changes the return type from a coroutine to an async_generator #}
+        yield {{ method.py_output_message_type }}()
+        {% endif %}
+
+    {% endfor %}
+
+    {% for method in service.methods %}
+    async def __rpc_{{ method.py_name }}(self, stream: "grpclib.server.Stream[{{ method.py_input_message_type }}, {{ method.py_output_message_type }}]") -> None:
+        {% if not method.client_streaming %}
+        request = await stream.recv_message()
+        assert request is not None
+        {% else %}
+        request = stream.__aiter__()
+        {% endif %}
+        {% if not method.server_streaming %}
+        response = await self.{{ method.py_name }}(request)
+        await stream.send_message(response)
+        {% else %}
+        await self._call_rpc_handler_server_stream(
+            self.{{ method.py_name }},
+            stream,
+            request,
+        )
+        {% endif %}
+
+    {% endfor %}
+
+    def __mapping__(self) -> "dict[str, grpclib.const.Handler]":
+        return {
+        {% for method in service.methods %}
+        "{{ method.route }}": grpclib.const.Handler(
+            self.__rpc_{{ method.py_name }},
+            {% if not method.client_streaming and not method.server_streaming %}
+            grpclib.const.Cardinality.UNARY_UNARY,
+            {% elif not method.client_streaming and method.server_streaming %}
+            grpclib.const.Cardinality.UNARY_STREAM,
+            {% elif method.client_streaming and not method.server_streaming %}
+            grpclib.const.Cardinality.STREAM_UNARY,
+            {% else %}
+            grpclib.const.Cardinality.STREAM_STREAM,
+            {% endif %}
+            {{ method.py_input_message_type }},
+            {{ method.py_output_message_type }},
+        ),
+        {% endfor %}
+        }
