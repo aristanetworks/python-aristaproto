@@ -17,7 +17,7 @@ wheels = [
 
 [[package]]
 name = "aristaproto"
-version = "2.0.0.dev0"
+version = "2.0.0.dev1"
 source = { directory = "../aristaproto" }
 dependencies = [
     { name = "python-dateutil" },
@@ -59,7 +59,7 @@ test = [
 
 [[package]]
 name = "aristaproto-compiler"
-version = "2.0.0.dev0"
+version = "2.0.0.dev1"
 source = { editable = "." }
 dependencies = [
     { name = "aristaproto" },

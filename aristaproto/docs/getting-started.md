@@ -138,7 +138,8 @@ The optional extras are:
     Make sure that the proto files were generated with a version of `aristaproto_compiler` that is compatible with your
     version of `aristaproto`.
 
-    The version `0.x.y` of `aristaproto` is compatible with the version `0.a.b` of the compiler if and only if `a=b`.
+    The version `x.y.z` of `aristaproto` is compatible with the version `a.b.c` of the compiler if and only if `a=x`
+    and `b=y`.
 
 ## Basic usage
 
