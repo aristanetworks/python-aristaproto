@@ -1,3 +1,6 @@
+# Service fixtures intentionally match the default generator's typing syntax.
+from typing import Dict  # noqa: UP035
+
 import grpclib
 import grpclib.server
 
@@ -54,7 +57,7 @@ class ThingService:
                 GetThingResponse(name=request.name, version=response_num)
             )
 
-    def __mapping__(self) -> dict[str, "grpclib.const.Handler"]:
+    def __mapping__(self) -> Dict[str, "grpclib.const.Handler"]:  # noqa: UP006
         return {
             "/service.Test/DoThing": grpclib.const.Handler(
                 self.do_thing,

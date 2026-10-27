@@ -11,6 +11,8 @@ if TYPE_CHECKING:
 else:
     from pydantic.dataclasses import dataclass
 
+from typing import List
+
 import aristaproto
 import aristaproto.lib.pydantic.google.protobuf as aristaproto_lib_pydantic_google_protobuf
 
@@ -41,7 +43,7 @@ class Version(aristaproto.Message):
 class CodeGeneratorRequest(aristaproto.Message):
     """An encoded CodeGeneratorRequest is written to the plugin's stdin."""
 
-    file_to_generate: list[str] = aristaproto.string_field(1)
+    file_to_generate: List[str] = aristaproto.string_field(1)
     """
     The .proto files that were explicitly listed on the command-line.  The
      code generator should generate code only for these files.  Each file's
@@ -51,7 +53,7 @@ class CodeGeneratorRequest(aristaproto.Message):
     parameter: str = aristaproto.string_field(2)
     """The generator parameter passed on the command-line."""
 
-    proto_file: list["aristaproto_lib_pydantic_google_protobuf.FileDescriptorProto"] = (
+    proto_file: List["aristaproto_lib_pydantic_google_protobuf.FileDescriptorProto"] = (
         aristaproto.message_field(15)
     )
     """
@@ -76,7 +78,7 @@ class CodeGeneratorRequest(aristaproto.Message):
      fully qualified.
     """
 
-    source_file_descriptors: list[
+    source_file_descriptors: List[
         "aristaproto_lib_pydantic_google_protobuf.FileDescriptorProto"
     ] = aristaproto.message_field(17)
     """
@@ -127,7 +129,7 @@ class CodeGeneratorResponse(aristaproto.Message):
      effect for plugins that have FEATURE_SUPPORTS_EDITIONS set.
     """
 
-    file: list["CodeGeneratorResponseFile"] = aristaproto.message_field(15)
+    file: List["CodeGeneratorResponseFile"] = aristaproto.message_field(15)
 
 
 @dataclass(eq=False, repr=False)

@@ -1,9 +1,11 @@
+# Message fixtures intentionally match the default generator's typing syntax.
 import pickle
 from copy import (
     copy,
     deepcopy,
 )
 from dataclasses import dataclass
+from typing import Dict, List  # noqa: UP035
 
 import cachelib
 
@@ -32,10 +34,10 @@ class Fo(aristaproto.Message):
 
 @dataclass(eq=False, repr=False)
 class NestedData(aristaproto.Message):
-    struct_foo: dict[str, "google.Struct"] = aristaproto.map_field(  # noqa: RUF009
+    struct_foo: Dict[str, "google.Struct"] = aristaproto.map_field(  # noqa: RUF009, UP006
         1, aristaproto.TYPE_STRING, aristaproto.TYPE_MESSAGE
     )
-    map_str_any_bar: dict[str, "google.Any"] = aristaproto.map_field(  # noqa: RUF009
+    map_str_any_bar: Dict[str, "google.Any"] = aristaproto.map_field(  # noqa: RUF009, UP006
         2, aristaproto.TYPE_STRING, aristaproto.TYPE_MESSAGE
     )
 
@@ -47,7 +49,7 @@ class Complex(aristaproto.Message):
     fi: "Fi" = aristaproto.message_field(4, group="grp")  # noqa: RUF009
     fo: "Fo" = aristaproto.message_field(5, group="grp")  # noqa: RUF009
     nested_data: "NestedData" = aristaproto.message_field(6)  # noqa: RUF009
-    mapping: dict[str, "google.Any"] = aristaproto.map_field(  # noqa: RUF009
+    mapping: Dict[str, "google.Any"] = aristaproto.map_field(  # noqa: RUF009, UP006
         7, aristaproto.TYPE_STRING, aristaproto.TYPE_MESSAGE
     )
 
@@ -148,7 +150,7 @@ def test_recursive_message_defaults():
 class PickledMessage(aristaproto.Message):
     foo: bool = aristaproto.bool_field(1)
     bar: int = aristaproto.int32_field(2)
-    baz: list[str] = aristaproto.string_field(3)  # noqa: RUF009
+    baz: List[str] = aristaproto.string_field(3)  # noqa: RUF009, UP006
 
 
 def test_copyability():

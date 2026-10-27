@@ -1,3 +1,4 @@
+# Message fixtures intentionally match the default generator's typing syntax.
 import json
 import sys
 from dataclasses import dataclass
@@ -9,6 +10,7 @@ from inspect import (
     Parameter,
     signature,
 )
+from typing import Dict, List, Optional  # noqa: UP035
 from unittest.mock import ANY
 
 import pytest
@@ -47,8 +49,8 @@ def test_has_field():
 
     @dataclass
     class WithCollections(aristaproto.Message):
-        test_list: list[str] = aristaproto.string_field(1)  # noqa: RUF009
-        test_map: dict[str, str] = aristaproto.map_field(  # noqa: RUF009
+        test_list: List[str] = aristaproto.string_field(1)  # noqa: RUF009, UP006
+        test_map: Dict[str, str] = aristaproto.map_field(  # noqa: RUF009, UP006
             2, aristaproto.TYPE_STRING, aristaproto.TYPE_STRING
         )
 
@@ -259,7 +261,7 @@ def test_dict_casing():
 def test_optional_flag():
     @dataclass
     class Request(aristaproto.Message):
-        flag: bool | None = aristaproto.message_field(1, wraps=aristaproto.TYPE_BOOL)
+        flag: Optional[bool] = aristaproto.message_field(1, wraps=aristaproto.TYPE_BOOL)  # noqa: UP045
 
     # Serialization of not passed vs. set vs. zero-value.
     assert bytes(Request()) == b""
@@ -274,7 +276,7 @@ def test_optional_flag():
 def test_optional_datetime_to_dict():
     @dataclass
     class Request(aristaproto.Message):
-        date: datetime | None = aristaproto.message_field(1, optional=True)  # noqa: RUF009
+        date: Optional[datetime] = aristaproto.message_field(1, optional=True)  # noqa: RUF009, UP045
 
     # Check dict serialization
     assert Request().to_dict() == {}
@@ -632,7 +634,7 @@ def test_iso_datetime():
 def test_iso_datetime_list():
     @dataclass
     class Envelope(aristaproto.Message):
-        timestamps: list[datetime] = aristaproto.message_field(1)  # noqa: RUF009
+        timestamps: List[datetime] = aristaproto.message_field(1)  # noqa: RUF009, UP006
 
     msg = Envelope()
 
@@ -653,7 +655,7 @@ def test_is_set():
     @dataclass
     class Spam(aristaproto.Message):
         foo: bool = aristaproto.bool_field(1)
-        bar: int | None = aristaproto.int32_field(2, optional=True)
+        bar: Optional[int] = aristaproto.int32_field(2, optional=True)  # noqa: UP045
 
     assert not Spam().is_set("foo")
     assert not Spam().is_set("bar")

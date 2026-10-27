@@ -4,6 +4,7 @@
 # This file has been @generated
 
 from dataclasses import dataclass
+from typing import List
 
 import aristaproto
 import aristaproto.lib.google.protobuf as aristaproto_lib_google_protobuf
@@ -35,7 +36,7 @@ class Version(aristaproto.Message):
 class CodeGeneratorRequest(aristaproto.Message):
     """An encoded CodeGeneratorRequest is written to the plugin's stdin."""
 
-    file_to_generate: list[str] = aristaproto.string_field(1)  # noqa: RUF009
+    file_to_generate: List[str] = aristaproto.string_field(1)
     """
     The .proto files that were explicitly listed on the command-line.  The
      code generator should generate code only for these files.  Each file's
@@ -45,8 +46,8 @@ class CodeGeneratorRequest(aristaproto.Message):
     parameter: str = aristaproto.string_field(2)
     """The generator parameter passed on the command-line."""
 
-    proto_file: list["aristaproto_lib_google_protobuf.FileDescriptorProto"] = (
-        aristaproto.message_field(15)  # noqa: RUF009
+    proto_file: List["aristaproto_lib_google_protobuf.FileDescriptorProto"] = (
+        aristaproto.message_field(15)
     )
     """
     FileDescriptorProtos for all files in files_to_generate and everything
@@ -70,16 +71,16 @@ class CodeGeneratorRequest(aristaproto.Message):
      fully qualified.
     """
 
-    source_file_descriptors: list[
+    source_file_descriptors: List[
         "aristaproto_lib_google_protobuf.FileDescriptorProto"
-    ] = aristaproto.message_field(17)  # noqa: RUF009
+    ] = aristaproto.message_field(17)
     """
     File descriptors with all options, including source-retention options.
      These descriptors are only provided for the files listed in
      files_to_generate.
     """
 
-    compiler_version: "Version" = aristaproto.message_field(3)  # noqa: RUF009
+    compiler_version: "Version" = aristaproto.message_field(3)
     """The version number of protocol compiler."""
 
 
@@ -121,7 +122,7 @@ class CodeGeneratorResponse(aristaproto.Message):
      effect for plugins that have FEATURE_SUPPORTS_EDITIONS set.
     """
 
-    file: list["CodeGeneratorResponseFile"] = aristaproto.message_field(15)  # noqa: RUF009
+    file: List["CodeGeneratorResponseFile"] = aristaproto.message_field(15)
 
 
 @dataclass(eq=False, repr=False)
@@ -188,7 +189,7 @@ class CodeGeneratorResponseFile(aristaproto.Message):
     """The file contents."""
 
     generated_code_info: "aristaproto_lib_google_protobuf.GeneratedCodeInfo" = (
-        aristaproto.message_field(16)  # noqa: RUF009
+        aristaproto.message_field(16)
     )
     """
     Information describing the file content being inserted. If an insertion

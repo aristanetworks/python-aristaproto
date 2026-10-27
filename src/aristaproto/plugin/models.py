@@ -333,6 +333,15 @@ class MessageCompiler(ProtoContentBase):
     builtins_types: set[str] = field(default_factory=set)
 
     def __post_init__(self) -> None:
+        if isinstance(self.proto_obj, DescriptorProto):
+            # Python 3.14+ (including 3.15) defers annotation evaluation, so a
+            # later field named "str" can shadow the builtin in earlier fields.
+            # Find all collisions before compiling field annotations and imports.
+            self.builtins_types.update(
+                pythonize_field_name(proto_field.name)
+                for proto_field in self.proto_obj.field
+                if pythonize_field_name(proto_field.name) in vars(builtins)
+            )
         # Add message to output file
         if isinstance(self.parent, OutputTemplate):
             if isinstance(self, EnumDefinitionCompiler):
@@ -436,8 +445,6 @@ class FieldCompiler(MessageCompiler):
         aristaproto_field_type = (
             f"aristaproto.{self.field_type}_field({self.proto_obj.number}{field_args})"
         )
-        if self.py_name in dir(builtins):
-            self.parent.builtins_types.add(self.py_name)
         return f"{name}{annotations} = {aristaproto_field_type}"
 
     @property
