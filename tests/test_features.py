@@ -668,7 +668,7 @@ def test_equality_comparison():
 
     msg = TestMessage(value=True)
 
-    assert msg == msg  # noqa: PLR0124
+    assert msg.__eq__(msg) is True
     assert msg == ANY
     assert msg == TestMessage(value=True)
     assert msg != 1
