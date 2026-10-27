@@ -5,7 +5,6 @@ import platform
 import shutil
 import sys
 from pathlib import Path
-from typing import Set
 
 from tests.util import (
     get_directories,
@@ -30,7 +29,7 @@ def clear_directory(dir_path: Path):
             file_or_directory.unlink()
 
 
-async def generate(whitelist: Set[str], verbose: bool):
+async def generate(whitelist: set[str], verbose: bool):
     test_case_names = set(get_directories(inputs_path)) - {"__pycache__"}
 
     path_whitelist = set()
@@ -164,18 +163,7 @@ async def generate_test_case_output(
     return max(ref_code, plg_code, plg_code_pyd)
 
 
-HELP = "\n".join(
-    (
-        "Usage: python generate.py [-h] [-v] [DIRECTORIES or NAMES]",
-        "Generate python classes for standard tests.",
-        "",
-        "DIRECTORIES    One or more relative or absolute directories of test-cases to generate classes for.",
-        "               python generate.py inputs/bool inputs/double inputs/enum",
-        "",
-        "NAMES          One or more test-case names to generate classes for.",
-        "               python generate.py bool double enums",
-    )
-)
+HELP = "Usage: python generate.py [-h] [-v] [DIRECTORIES or NAMES]\nGenerate python classes for standard tests.\n\nDIRECTORIES    One or more relative or absolute directories of test-cases to generate classes for.\n               python generate.py inputs/bool inputs/double inputs/enum\n\nNAMES          One or more test-case names to generate classes for.\n               python generate.py bool double enums"
 
 
 def main():

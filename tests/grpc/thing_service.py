@@ -1,5 +1,3 @@
-from typing import Dict
-
 import grpclib
 import grpclib.server
 
@@ -56,7 +54,7 @@ class ThingService:
                 GetThingResponse(name=request.name, version=response_num)
             )
 
-    def __mapping__(self) -> Dict[str, "grpclib.const.Handler"]:
+    def __mapping__(self) -> dict[str, "grpclib.const.Handler"]:
         return {
             "/service.Test/DoThing": grpclib.const.Handler(
                 self.do_thing,

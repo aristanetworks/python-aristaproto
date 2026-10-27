@@ -7,9 +7,6 @@ from collections import namedtuple
 from types import ModuleType
 from typing import (
     Any,
-    Dict,
-    List,
-    Set,
 )
 
 import pytest
@@ -30,8 +27,8 @@ class TestCases:
     def __init__(
         self,
         path,
-        services: Set[str],
-        xfail: Set[str],
+        services: set[str],
+        xfail: set[str],
     ):
         _all = set(get_directories(path)) - {"__pycache__"}
         _services = services
@@ -42,7 +39,7 @@ class TestCases:
 
         unknown_xfail_tests = xfail - _all
         if unknown_xfail_tests:
-            raise Exception(f"Unknown test(s) in config.py: {unknown_xfail_tests}")
+            raise Exception(f"Unknown test(s) in config.py: {unknown_xfail_tests}")  # noqa: TRY002
 
         self.all = self.apply_xfail_marks(_all, xfail)
         self.services = self.apply_xfail_marks(_services, xfail)
@@ -50,7 +47,7 @@ class TestCases:
         self.messages_with_json = self.apply_xfail_marks(_messages_with_json, xfail)
 
     @staticmethod
-    def apply_xfail_marks(test_set: Set[str], xfail: Set[str]):
+    def apply_xfail_marks(test_set: set[str], xfail: set[str]):
         return [
             pytest.param(test, marks=pytest.mark.xfail) if test in xfail else test
             for test in test_set
@@ -73,7 +70,7 @@ def module_has_entry_point(module: ModuleType):
     return any(hasattr(module, attr) for attr in ["Test", "TestStub"])
 
 
-def list_replace_nans(items: List) -> List[Any]:
+def list_replace_nans(items: list) -> list[Any]:
     """Replace float("nan") in a list with the string "NaN"
 
     Parameters
@@ -97,7 +94,7 @@ def list_replace_nans(items: List) -> List[Any]:
     return result
 
 
-def dict_replace_nans(input_dict: Dict[Any, Any]) -> Dict[Any, Any]:
+def dict_replace_nans(input_dict: dict[Any, Any]) -> dict[Any, Any]:
     """Replace float("nan") in a dictionary with the string "NaN"
 
     Parameters
@@ -136,8 +133,8 @@ def test_data(request, reset_sys_path):
     plugin_module_entry_point = find_module(plugin_module, module_has_entry_point)
 
     if not plugin_module_entry_point:
-        raise Exception(
-            f"Test case {repr(test_case_name)} has no entry point. "
+        raise Exception(  # noqa: TRY002
+            f"Test case {test_case_name!r} has no entry point. "
             "Please add a proto message or service called Test and recompile."
         )
 

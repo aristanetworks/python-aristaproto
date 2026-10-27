@@ -1,9 +1,3 @@
-from typing import (
-    List,
-    Optional,
-    Set,
-)
-
 import pytest
 
 from aristaproto.plugin.module_validation import ModuleValidator
@@ -100,7 +94,7 @@ from aristaproto.plugin.module_validation import ModuleValidator
         ),
     ],
 )
-def test_module_validator(text: List[str], expected_collisions: Optional[Set[str]]):
+def test_module_validator(text: list[str], expected_collisions: set[str] | None):
     line_iterator = iter(text)
     validator = ModuleValidator(line_iterator)
     valid = validator.validate()

@@ -1,12 +1,9 @@
-from typing import (
-    Any,
-    Callable,
-    Optional,
-)
+from collections.abc import Callable
+from typing import Any
 
 import pytest
 
-import aristaproto.lib.google.protobuf as protobuf
+from aristaproto.lib.google import protobuf
 from tests.mocks import MockChannel
 from tests.output_aristaproto.googletypes_response import (
     Input,
@@ -40,7 +37,7 @@ async def test_channel_receives_wrapped_type(
 
     await service_method(service, method_param)
 
-    assert channel.requests[0]["response_type"] != Optional[type(value)]
+    assert channel.requests[0]["response_type"] != type(value) | None
     assert channel.requests[0]["response_type"] is type(wrapped_value)
 
 

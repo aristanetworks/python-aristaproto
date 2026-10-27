@@ -1,4 +1,4 @@
-import tests.output_aristaproto.casing as casing
+from tests.output_aristaproto import casing
 from tests.output_aristaproto.casing import Test
 
 

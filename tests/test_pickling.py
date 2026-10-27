@@ -4,10 +4,6 @@ from copy import (
     deepcopy,
 )
 from dataclasses import dataclass
-from typing import (
-    Dict,
-    List,
-)
 
 import cachelib
 
@@ -36,10 +32,10 @@ class Fo(aristaproto.Message):
 
 @dataclass(eq=False, repr=False)
 class NestedData(aristaproto.Message):
-    struct_foo: Dict[str, "google.Struct"] = aristaproto.map_field(
+    struct_foo: dict[str, "google.Struct"] = aristaproto.map_field(  # noqa: RUF009
         1, aristaproto.TYPE_STRING, aristaproto.TYPE_MESSAGE
     )
-    map_str_any_bar: Dict[str, "google.Any"] = aristaproto.map_field(
+    map_str_any_bar: dict[str, "google.Any"] = aristaproto.map_field(  # noqa: RUF009
         2, aristaproto.TYPE_STRING, aristaproto.TYPE_MESSAGE
     )
 
@@ -47,11 +43,11 @@ class NestedData(aristaproto.Message):
 @dataclass(eq=False, repr=False)
 class Complex(aristaproto.Message):
     foo_str: str = aristaproto.string_field(1)
-    fe: "Fe" = aristaproto.message_field(3, group="grp")
-    fi: "Fi" = aristaproto.message_field(4, group="grp")
-    fo: "Fo" = aristaproto.message_field(5, group="grp")
-    nested_data: "NestedData" = aristaproto.message_field(6)
-    mapping: Dict[str, "google.Any"] = aristaproto.map_field(
+    fe: "Fe" = aristaproto.message_field(3, group="grp")  # noqa: RUF009
+    fi: "Fi" = aristaproto.message_field(4, group="grp")  # noqa: RUF009
+    fo: "Fo" = aristaproto.message_field(5, group="grp")  # noqa: RUF009
+    nested_data: "NestedData" = aristaproto.message_field(6)  # noqa: RUF009
+    mapping: dict[str, "google.Any"] = aristaproto.map_field(  # noqa: RUF009
         7, aristaproto.TYPE_STRING, aristaproto.TYPE_MESSAGE
     )
 
@@ -152,7 +148,7 @@ def test_recursive_message_defaults():
 class PickledMessage(aristaproto.Message):
     foo: bool = aristaproto.bool_field(1)
     bar: int = aristaproto.int32_field(2)
-    baz: List[str] = aristaproto.string_field(3)
+    baz: list[str] = aristaproto.string_field(3)  # noqa: RUF009
 
 
 def test_copyability():
@@ -181,7 +177,7 @@ def test_message_can_be_cached():
         if result is not None:
             return result
         else:
-            setattr(use_cache, "calls", calls + 1)
+            use_cache.calls = calls + 1
             result = complex_msg()
             cache.set("message", result)
             return result

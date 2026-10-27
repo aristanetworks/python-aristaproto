@@ -13,6 +13,7 @@ from base64 import (
     b64decode,
     b64encode,
 )
+from collections.abc import Callable, Generator, Iterable, Mapping
 from copy import deepcopy
 from datetime import (
     datetime,
@@ -24,16 +25,7 @@ from itertools import count
 from typing import (
     TYPE_CHECKING,
     Any,
-    Callable,
     ClassVar,
-    Dict,
-    Generator,
-    Iterable,
-    Mapping,
-    Optional,
-    Set,
-    Tuple,
-    Type,
     Union,
     get_type_hints,
 )
@@ -62,11 +54,7 @@ if TYPE_CHECKING:
         SupportsWrite,
     )
 
-if sys.version_info >= (3, 10):
-    from types import UnionType as _types_UnionType
-else:
-
-    class _types_UnionType: ...
+from types import UnionType as _types_UnionType
 
 
 # Proto 3 data types
@@ -150,7 +138,7 @@ SIZE_DELIMITED = -1
 class _DateTime(datetime):
     """Subclass of datetime with an attribute to store the original nanos value from a Timestamp field"""
 
-    __slots__ = "_nanos"
+    __slots__ = ("_nanos",)
 
     @property
     def nanos(self):
@@ -205,16 +193,16 @@ class FieldMetadata:
     # Protobuf type name
     proto_type: str
     # Map information if the proto_type is a map
-    map_types: Optional[Tuple[str, str]] = None
+    map_types: tuple[str, str] | None = None
     # Groups several "one-of" fields together
-    group: Optional[str] = None
+    group: str | None = None
     # Describes the wrapped type (e.g. when using google.protobuf.BoolValue)
-    wraps: Optional[str] = None
+    wraps: str | None = None
     # Is the field optional
-    optional: Optional[bool] = False
+    optional: bool | None = False
 
     @staticmethod
-    def get(field: dataclasses.Field) -> "FieldMetadata":
+    def get(field: dataclasses.Field) -> FieldMetadata:
         """Returns the field metadata for a dataclass field."""
         return field.metadata["aristaproto"]
 
@@ -223,9 +211,9 @@ def dataclass_field(
     number: int,
     proto_type: str,
     *,
-    map_types: Optional[Tuple[str, str]] = None,
-    group: Optional[str] = None,
-    wraps: Optional[str] = None,
+    map_types: tuple[str, str] | None = None,
+    group: str | None = None,
+    wraps: str | None = None,
     optional: bool = False,
 ) -> dataclasses.Field:
     """Creates a dataclass field with attached protobuf metadata."""
@@ -244,102 +232,78 @@ def dataclass_field(
 # out at runtime. The generated dataclass variables are still typed correctly.
 
 
-def enum_field(number: int, group: Optional[str] = None, optional: bool = False) -> Any:
+def enum_field(number: int, group: str | None = None, optional: bool = False) -> Any:
     return dataclass_field(number, TYPE_ENUM, group=group, optional=optional)
 
 
-def bool_field(number: int, group: Optional[str] = None, optional: bool = False) -> Any:
+def bool_field(number: int, group: str | None = None, optional: bool = False) -> Any:
     return dataclass_field(number, TYPE_BOOL, group=group, optional=optional)
 
 
-def int32_field(
-    number: int, group: Optional[str] = None, optional: bool = False
-) -> Any:
+def int32_field(number: int, group: str | None = None, optional: bool = False) -> Any:
     return dataclass_field(number, TYPE_INT32, group=group, optional=optional)
 
 
-def int64_field(
-    number: int, group: Optional[str] = None, optional: bool = False
-) -> Any:
+def int64_field(number: int, group: str | None = None, optional: bool = False) -> Any:
     return dataclass_field(number, TYPE_INT64, group=group, optional=optional)
 
 
-def uint32_field(
-    number: int, group: Optional[str] = None, optional: bool = False
-) -> Any:
+def uint32_field(number: int, group: str | None = None, optional: bool = False) -> Any:
     return dataclass_field(number, TYPE_UINT32, group=group, optional=optional)
 
 
-def uint64_field(
-    number: int, group: Optional[str] = None, optional: bool = False
-) -> Any:
+def uint64_field(number: int, group: str | None = None, optional: bool = False) -> Any:
     return dataclass_field(number, TYPE_UINT64, group=group, optional=optional)
 
 
-def sint32_field(
-    number: int, group: Optional[str] = None, optional: bool = False
-) -> Any:
+def sint32_field(number: int, group: str | None = None, optional: bool = False) -> Any:
     return dataclass_field(number, TYPE_SINT32, group=group, optional=optional)
 
 
-def sint64_field(
-    number: int, group: Optional[str] = None, optional: bool = False
-) -> Any:
+def sint64_field(number: int, group: str | None = None, optional: bool = False) -> Any:
     return dataclass_field(number, TYPE_SINT64, group=group, optional=optional)
 
 
-def float_field(
-    number: int, group: Optional[str] = None, optional: bool = False
-) -> Any:
+def float_field(number: int, group: str | None = None, optional: bool = False) -> Any:
     return dataclass_field(number, TYPE_FLOAT, group=group, optional=optional)
 
 
-def double_field(
-    number: int, group: Optional[str] = None, optional: bool = False
-) -> Any:
+def double_field(number: int, group: str | None = None, optional: bool = False) -> Any:
     return dataclass_field(number, TYPE_DOUBLE, group=group, optional=optional)
 
 
-def fixed32_field(
-    number: int, group: Optional[str] = None, optional: bool = False
-) -> Any:
+def fixed32_field(number: int, group: str | None = None, optional: bool = False) -> Any:
     return dataclass_field(number, TYPE_FIXED32, group=group, optional=optional)
 
 
-def fixed64_field(
-    number: int, group: Optional[str] = None, optional: bool = False
-) -> Any:
+def fixed64_field(number: int, group: str | None = None, optional: bool = False) -> Any:
     return dataclass_field(number, TYPE_FIXED64, group=group, optional=optional)
 
 
 def sfixed32_field(
-    number: int, group: Optional[str] = None, optional: bool = False
+    number: int, group: str | None = None, optional: bool = False
 ) -> Any:
     return dataclass_field(number, TYPE_SFIXED32, group=group, optional=optional)
 
 
 def sfixed64_field(
-    number: int, group: Optional[str] = None, optional: bool = False
+    number: int, group: str | None = None, optional: bool = False
 ) -> Any:
     return dataclass_field(number, TYPE_SFIXED64, group=group, optional=optional)
 
 
-def string_field(
-    number: int, group: Optional[str] = None, optional: bool = False
-) -> Any:
+def string_field(number: int, group: str | None = None, optional: bool = False) -> Any:
     return dataclass_field(number, TYPE_STRING, group=group, optional=optional)
 
 
-def bytes_field(
-    number: int, group: Optional[str] = None, optional: bool = False
-) -> Any:
+def bytes_field(number: int, group: str | None = None, optional: bool = False) -> Any:
     return dataclass_field(number, TYPE_BYTES, group=group, optional=optional)
 
 
 def message_field(
     number: int,
-    group: Optional[str] = None,
-    wraps: Optional[str] = None,
+    group: str | None = None,
+    wraps: str | None = None,
     optional: bool = False,
 ) -> Any:
     return dataclass_field(
@@ -348,7 +312,7 @@ def message_field(
 
 
 def map_field(
-    number: int, key_type: str, value_type: str, group: Optional[str] = None
+    number: int, key_type: str, value_type: str, group: str | None = None
 ) -> Any:
     return dataclass_field(
         number, TYPE_MAP, map_types=(key_type, value_type), group=group
@@ -367,7 +331,7 @@ def _pack_fmt(proto_type: str) -> str:
     }[proto_type]
 
 
-def dump_varint(value: int, stream: "SupportsWrite[bytes]") -> None:
+def dump_varint(value: int, stream: SupportsWrite[bytes]) -> None:
     """Encodes a single varint and dumps it into the provided stream."""
     if value < -(1 << 63):
         raise ValueError(
@@ -554,7 +518,7 @@ def _parse_float(value: Any) -> float:
     return float(value)
 
 
-def _dump_float(value: float) -> Union[float, str]:
+def _dump_float(value: float) -> float | str:
     """Dump the given float to JSON
 
     Parameters
@@ -576,7 +540,7 @@ def _dump_float(value: float) -> Union[float, str]:
     return value
 
 
-def load_varint(stream: "SupportsRead[bytes]") -> Tuple[int, bytes]:
+def load_varint(stream: SupportsRead[bytes]) -> tuple[int, bytes]:
     """
     Load a single varint value from a stream. Returns the value and the raw bytes read.
     """
@@ -595,7 +559,7 @@ def load_varint(stream: "SupportsRead[bytes]") -> Tuple[int, bytes]:
             return result, raw
 
 
-def decode_varint(buffer: bytes, pos: int) -> Tuple[int, int]:
+def decode_varint(buffer: bytes, pos: int) -> tuple[int, int]:
     """
     Decode a single varint value from a byte buffer. Returns the value and the
     new position in the buffer.
@@ -614,7 +578,7 @@ class ParsedField:
     raw: bytes
 
 
-def load_fields(stream: "SupportsRead[bytes]") -> Generator[ParsedField, None, None]:
+def load_fields(stream: SupportsRead[bytes]) -> Generator[ParsedField, None, None]:
     while True:
         try:
             num_wire, raw = load_varint(stream)
@@ -669,26 +633,26 @@ def parse_fields(value: bytes) -> Generator[ParsedField, None, None]:
 
 class ProtoClassMetadata:
     __slots__ = (
-        "oneof_group_by_field",
-        "oneof_field_by_group",
-        "default_gen",
         "cls_by_field",
+        "default_gen",
         "field_name_by_number",
         "meta_by_field_name",
+        "oneof_field_by_group",
+        "oneof_group_by_field",
         "sorted_field_names",
     )
 
-    oneof_group_by_field: Dict[str, str]
-    oneof_field_by_group: Dict[str, Set[dataclasses.Field]]
-    field_name_by_number: Dict[int, str]
-    meta_by_field_name: Dict[str, FieldMetadata]
-    sorted_field_names: Tuple[str, ...]
-    default_gen: Dict[str, Callable[[], Any]]
-    cls_by_field: Dict[str, Type]
+    oneof_group_by_field: dict[str, str]
+    oneof_field_by_group: dict[str, set[dataclasses.Field]]
+    field_name_by_number: dict[int, str]
+    meta_by_field_name: dict[str, FieldMetadata]
+    sorted_field_names: tuple[str, ...]
+    default_gen: dict[str, Callable[[], Any]]
+    cls_by_field: dict[str, type]
 
-    def __init__(self, cls: Type["Message"]):
+    def __init__(self, cls: type[Message]):
         by_field = {}
-        by_group: Dict[str, Set] = {}
+        by_group: dict[str, set] = {}
         by_field_name = {}
         by_field_number = {}
 
@@ -717,14 +681,16 @@ class ProtoClassMetadata:
 
     @staticmethod
     def _get_default_gen(
-        cls: Type["Message"], fields: Iterable[dataclasses.Field]
-    ) -> Dict[str, Callable[[], Any]]:
+        cls: type[Message],  # noqa: PLW0211
+        fields: Iterable[dataclasses.Field],
+    ) -> dict[str, Callable[[], Any]]:
         return {field.name: cls._get_field_default_gen(field) for field in fields}
 
     @staticmethod
     def _get_cls_by_field(
-        cls: Type["Message"], fields: Iterable[dataclasses.Field]
-    ) -> Dict[str, Type]:
+        cls: type[Message],  # noqa: PLW0211
+        fields: Iterable[dataclasses.Field],
+    ) -> dict[str, type]:
         field_cls = {}
 
         for field in fields:
@@ -767,7 +733,7 @@ class Message(ABC):
 
     _serialized_on_wire: bool
     _unknown_fields: bytes
-    _group_current: Dict[str, str]
+    _group_current: dict[str, str]
     _aristaproto_meta: ClassVar[ProtoClassMetadata]
 
     def __post_init__(self) -> None:
@@ -775,7 +741,7 @@ class Message(ABC):
         all_sentinel = True
 
         # Set current field of each group after `__init__` has already been run.
-        group_current: Dict[str, Optional[str]] = {}
+        group_current: dict[str, str | None] = {}
         for field_name, meta in self._aristaproto.meta_by_field_name.items():
             if meta.group:
                 group_current.setdefault(meta.group)
@@ -836,7 +802,7 @@ class Message(ABC):
         ]
         return f"{self.__class__.__name__}({', '.join(parts)})"
 
-    def __rich_repr__(self) -> Iterable[Tuple[str, Any, Any]]:
+    def __rich_repr__(self) -> Iterable[tuple[str, Any, Any]]:
         for field_name in self._aristaproto.sorted_field_names:
             yield field_name, self.__raw_get(field_name), PLACEHOLDER
 
@@ -856,16 +822,11 @@ class Message(ABC):
                 if name not in {"__class__", "_aristaproto"}:
                     group = self._aristaproto.oneof_group_by_field.get(name)
                     if group is not None and group_current[group] != name:
-                        if sys.version_info < (3, 10):
-                            raise AttributeError(
-                                f"{group!r} is set to {group_current[group]!r}, not {name!r}"
-                            )
-                        else:
-                            raise AttributeError(
-                                f"{group!r} is set to {group_current[group]!r}, not {name!r}",
-                                name=name,
-                                obj=self,
-                            )
+                        raise AttributeError(
+                            f"{group!r} is set to {group_current[group]!r}, not {name!r}",
+                            name=name,
+                            obj=self,
+                        )
 
             value = super().__getattribute__(name)
             if value is not PLACEHOLDER:
@@ -887,14 +848,16 @@ class Message(ABC):
             # Track when a field has been set.
             self.__dict__["_serialized_on_wire"] = True
 
-        if hasattr(self, "_group_current"):  # __post_init__ had already run
-            if attr in self._aristaproto.oneof_group_by_field:
-                group = self._aristaproto.oneof_group_by_field[attr]
-                for field in self._aristaproto.oneof_field_by_group[group]:
-                    if field.name == attr:
-                        self._group_current[group] = field.name
-                    else:
-                        super().__setattr__(field.name, PLACEHOLDER)
+        if (
+            hasattr(self, "_group_current")  # __post_init__ had already run
+            and attr in self._aristaproto.oneof_group_by_field
+        ):
+            group = self._aristaproto.oneof_group_by_field[attr]
+            for field in self._aristaproto.oneof_field_by_group[group]:
+                if field.name == attr:
+                    self._group_current[group] = field.name
+                else:
+                    super().__setattr__(field.name, PLACEHOLDER)
 
         super().__setattr__(attr, value)
 
@@ -906,7 +869,9 @@ class Message(ABC):
             for field_name in self._aristaproto.meta_by_field_name
         )
 
-    def __deepcopy__(self: T, _: Any = {}) -> T:
+    def __deepcopy__(self: T, _: Any = None) -> T:
+        if _ is None:
+            _ = {}
         kwargs = {}
         for name in self._aristaproto.sorted_field_names:
             value = self.__raw_get(name)
@@ -914,7 +879,9 @@ class Message(ABC):
                 kwargs[name] = deepcopy(value)
         return self.__class__(**kwargs)  # type: ignore
 
-    def __copy__(self: T, _: Any = {}) -> T:
+    def __copy__(self: T, _: Any = None) -> T:
+        if _ is None:
+            _ = {}
         kwargs = {}
         for name in self._aristaproto.sorted_field_names:
             value = self.__raw_get(name)
@@ -935,7 +902,7 @@ class Message(ABC):
             cls._aristaproto_meta = meta = ProtoClassMetadata(cls)
             return meta
 
-    def dump(self, stream: "SupportsWrite[bytes]", delimit: bool = False) -> None:
+    def dump(self, stream: SupportsWrite[bytes], delimit: bool = False) -> None:
         """
         Dumps the binary encoded Protobuf message to the stream.
 
@@ -1167,25 +1134,28 @@ class Message(ABC):
     def __setstate__(self: T, pickled_bytes: bytes) -> T:
         return self.parse(pickled_bytes)
 
-    def __reduce__(self) -> Tuple[Any, ...]:
+    def __reduce__(self) -> tuple[Any, ...]:
         return (self.__class__.FromString, (bytes(self),))
 
     @classmethod
-    def _type_hint(cls, field_name: str) -> Type:
+    def _type_hint(cls, field_name: str) -> type:
         return cls._type_hints()[field_name]
 
     @classmethod
-    def _type_hints(cls) -> Dict[str, Type]:
+    def _type_hints(cls) -> dict[str, type]:
         module = sys.modules[cls.__module__]
         return get_type_hints(cls, module.__dict__, {})
 
     @classmethod
-    def _cls_for(cls, field: dataclasses.Field, index: int = 0) -> Type:
+    def _cls_for(cls, field: dataclasses.Field, index: int = 0) -> type:
         """Get the message class for a field from the type hints."""
         field_cls = cls._type_hint(field.name)
-        if hasattr(field_cls, "__args__") and index >= 0:
-            if field_cls.__args__ is not None:
-                field_cls = field_cls.__args__[index]
+        if (
+            hasattr(field_cls, "__args__")
+            and index >= 0
+            and field_cls.__args__ is not None
+        ):
+            field_cls = field_cls.__args__[index]
         return field_cls
 
     def _get_field_default(self, field_name: str) -> Any:
@@ -1275,8 +1245,8 @@ class Message(ABC):
 
     def load(
         self: T,
-        stream: "SupportsRead[bytes]",
-        size: Optional[int] = None,
+        stream: SupportsRead[bytes],
+        size: int | None = None,
     ) -> T:
         """
         Load the binary encoded Protobuf from a stream into this message instance. This
@@ -1392,7 +1362,7 @@ class Message(ABC):
 
     # For compatibility with other libraries.
     @classmethod
-    def FromString(cls: Type[T], data: bytes) -> T:
+    def FromString(cls: type[T], data: bytes) -> T:
         """
         Parse the binary encoded Protobuf into this message instance. This
         returns the instance itself and is therefore assignable and chainable.
@@ -1416,7 +1386,7 @@ class Message(ABC):
 
     def to_dict(
         self, casing: Casing = Casing.CAMEL, include_default_values: bool = False
-    ) -> Dict[str, Any]:
+    ) -> dict[str, Any]:
         """
         Returns a JSON serializable dict representation of this object.
 
@@ -1435,7 +1405,7 @@ class Message(ABC):
         Dict[:class:`str`, Any]
             The JSON serializable dict representation of this object.
         """
-        output: Dict[str, Any] = {}
+        output: dict[str, Any] = {}
         field_types = self._type_hints()
         defaults = self._aristaproto.default_gen
         for field_name, meta in self._aristaproto.meta_by_field_name.items():
@@ -1540,7 +1510,7 @@ class Message(ABC):
                         enum_class = field_types[field_name].__args__[0]
                         output[cased_name] = enum_class(value).name
                     else:
-                        enum_class = field_types[field_name]  # noqa
+                        enum_class = field_types[field_name]
                         output[cased_name] = enum_class(value).name
                 elif meta.proto_type in (TYPE_FLOAT, TYPE_DOUBLE):
                     if field_is_repeated:
@@ -1553,7 +1523,7 @@ class Message(ABC):
 
     @classmethod
     def _from_dict_init(cls, mapping: Mapping[str, Any]) -> Mapping[str, Any]:
-        init_kwargs: Dict[str, Any] = {}
+        init_kwargs: dict[str, Any] = {}
         for key, value in mapping.items():
             field_name = safe_snake_case(key)
             try:
@@ -1651,13 +1621,13 @@ class Message(ABC):
             The initialized message.
         """
         self._serialized_on_wire = True
-        for field, value in self._from_dict_init(value).items():
-            setattr(self, field, value)
+        for field, val in self._from_dict_init(value).items():
+            setattr(self, field, val)
         return self
 
     def to_json(
         self,
-        indent: Union[None, int, str] = None,
+        indent: None | int | str = None,
         include_default_values: bool = False,
         casing: Casing = Casing.CAMEL,
     ) -> str:
@@ -1692,7 +1662,7 @@ class Message(ABC):
             indent=indent,
         )
 
-    def from_json(self: T, value: Union[str, bytes]) -> T:
+    def from_json(self: T, value: str | bytes) -> T:
         """A helper function to return the message instance from its JSON
         representation. This returns the instance itself and is therefore assignable
         and chainable.
@@ -1715,7 +1685,7 @@ class Message(ABC):
 
     def to_pydict(
         self, casing: Casing = Casing.CAMEL, include_default_values: bool = False
-    ) -> Dict[str, Any]:
+    ) -> dict[str, Any]:
         """
         Returns a python dict representation of this object.
 
@@ -1734,7 +1704,7 @@ class Message(ABC):
         Dict[:class:`str`, Any]
             The python dict representation of this object.
         """
-        output: Dict[str, Any] = {}
+        output: dict[str, Any] = {}
         defaults = self._aristaproto.default_gen
         for field_name, meta in self._aristaproto.meta_by_field_name.items():
             field_is_repeated = defaults[field_name] is list
@@ -1824,11 +1794,7 @@ class Message(ABC):
                         cls = self._aristaproto.cls_by_field[field_name]
                         for item in value[key]:
                             v.append(cls().from_pydict(item))
-                    elif isinstance(v, datetime):
-                        v = value[key]
-                    elif isinstance(v, timedelta):
-                        v = value[key]
-                    elif meta.wraps:
+                    elif isinstance(v, (datetime, timedelta)) or meta.wraps:
                         v = value[key]
                     else:
                         # NOTE: `from_pydict` mutates the underlying message, so no
@@ -1931,7 +1897,7 @@ def serialized_on_wire(message: Message) -> bool:
     return message._serialized_on_wire
 
 
-def which_one_of(message: Message, group_name: str) -> Tuple[str, Optional[Any]]:
+def which_one_of(message: Message, group_name: str) -> tuple[str, Any | None]:
     """
     Return the name and value of a message's one-of field group.
 
@@ -1947,7 +1913,7 @@ def which_one_of(message: Message, group_name: str) -> Tuple[str, Optional[Any]]
 
 
 # Circular import workaround: google.protobuf depends on base classes defined above.
-from .lib.google.protobuf import (  # noqa
+from .lib.google.protobuf import (
     BoolValue,
     BytesValue,
     DoubleValue,
@@ -1967,7 +1933,7 @@ class _Duration(Duration):
     @classmethod
     def from_timedelta(
         cls, delta: timedelta, *, _1_microsecond: timedelta = timedelta(microseconds=1)
-    ) -> "_Duration":
+    ) -> _Duration:
         total_ms = delta // _1_microsecond
         seconds = int(total_ms / 1e6)
         nanos = int((total_ms % 1e6) * 1e3)
@@ -1987,7 +1953,7 @@ class _Duration(Duration):
 
 class _Timestamp(Timestamp):
     @classmethod
-    def from_datetime(cls, dt: datetime) -> "_Timestamp":
+    def from_datetime(cls, dt: datetime) -> _Timestamp:
         # manual epoch offset calulation to avoid rounding errors,
         # to support negative timestamps (before 1970) and skirt
         # around datetime bugs (apparently 0 isn't a year in [0, 9999]??)
@@ -2011,7 +1977,7 @@ class _Timestamp(Timestamp):
         offset = timedelta(seconds=self.seconds, microseconds=self.nanos // 1000)
         dt = DATETIME_ZERO + offset
         # Store the original nanos in our subclass of datetime.
-        setattr(dt, "_nanos", self.nanos)
+        dt._nanos = self.nanos
         return dt
 
     @staticmethod
@@ -2041,7 +2007,7 @@ class _Timestamp(Timestamp):
         return f"{result}.{nanos:09d}"
 
 
-def _get_wrapper(proto_type: str) -> Type:
+def _get_wrapper(proto_type: str) -> type:
     """Get the wrapper message class for a wrapped type."""
 
     # TODO: include ListValue and NullValue?

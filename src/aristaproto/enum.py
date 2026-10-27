@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+from collections.abc import Iterator
 from enum import (
     EnumMeta,
     IntEnum,
@@ -8,9 +9,6 @@ from types import MappingProxyType
 from typing import (
     TYPE_CHECKING,
     Any,
-    Dict,
-    Optional,
-    Tuple,
 )
 
 
@@ -37,7 +35,7 @@ class EnumType(EnumMeta if TYPE_CHECKING else type):
     _member_map_: Mapping[str, Enum]
 
     def __new__(
-        mcs, name: str, bases: Tuple[type, ...], namespace: Dict[str, Any]
+        mcs, name: str, bases: tuple[type, ...], namespace: dict[str, Any]
     ) -> Self:
         value_map = {}
         member_map = {}
@@ -68,13 +66,13 @@ class EnumType(EnumMeta if TYPE_CHECKING else type):
         # this allows us to disallow member access from other members as
         # members become proper class variables
 
-        for name, value in members.items():
+        for member_name, value in members.items():
             member = value_map.get(value)
             if member is None:
-                member = cls.__new__(cls, name=name, value=value)  # type: ignore
+                member = cls.__new__(cls, name=member_name, value=value)  # type: ignore
                 value_map[value] = member
-            member_map[name] = member
-            type.__setattr__(new_mcs, name, member)
+            member_map[member_name] = member
+            type.__setattr__(new_mcs, member_name, member)
 
         return cls
 
@@ -86,7 +84,7 @@ class EnumType(EnumMeta if TYPE_CHECKING else type):
             except (KeyError, TypeError):
                 raise ValueError(f"{value!r} is not a valid {cls.__name__}") from None
 
-        def __iter__(cls) -> Generator[Enum, None, None]:
+        def __iter__(cls) -> Iterator[Enum]:
             yield from cls._member_map_.values()
 
         def __reversed__(cls) -> Generator[Enum, None, None]:
@@ -121,18 +119,18 @@ class Enum(IntEnum if TYPE_CHECKING else int, metaclass=EnumType):
     inherit from this. Emulates `enum.IntEnum`.
     """
 
-    name: Optional[str]
+    name: str | None
     value: int
 
     if not TYPE_CHECKING:
 
-        def __new__(cls, *, name: Optional[str], value: int) -> Self:
+        def __new__(cls, *, name: str | None, value: int) -> Self:
             self = super().__new__(cls, value)
             super().__setattr__(self, "name", name)
             super().__setattr__(self, "value", value)
             return self
 
-    def __getnewargs_ex__(self) -> Tuple[Tuple[()], Dict[str, Any]]:
+    def __getnewargs_ex__(self) -> tuple[tuple[()], dict[str, Any]]:
         return (), {"name": self.name, "value": self.value}
 
     def __str__(self) -> str:

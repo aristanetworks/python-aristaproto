@@ -3,12 +3,8 @@
 # plugin: python-aristaproto
 
 import warnings
+from collections.abc import Mapping
 from dataclasses import dataclass
-from typing import (
-    Dict,
-    List,
-    Mapping,
-)
 
 from typing_extensions import Self
 
@@ -511,19 +507,19 @@ class Type(aristaproto.Message):
     name: str = aristaproto.string_field(1)
     """The fully qualified message name."""
 
-    fields: List["Field"] = aristaproto.message_field(2)
+    fields: list["Field"] = aristaproto.message_field(2)  # noqa: RUF009
     """The list of fields."""
 
-    oneofs: List[str] = aristaproto.string_field(3)
+    oneofs: list[str] = aristaproto.string_field(3)  # noqa: RUF009
     """The list of types appearing in `oneof` definitions in this type."""
 
-    options: List["Option"] = aristaproto.message_field(4)
+    options: list["Option"] = aristaproto.message_field(4)  # noqa: RUF009
     """The protocol buffer options."""
 
-    source_context: "SourceContext" = aristaproto.message_field(5)
+    source_context: "SourceContext" = aristaproto.message_field(5)  # noqa: RUF009
     """The source context."""
 
-    syntax: "Syntax" = aristaproto.enum_field(6)
+    syntax: "Syntax" = aristaproto.enum_field(6)  # noqa: RUF009
     """The source syntax."""
 
     edition: str = aristaproto.string_field(7)
@@ -536,10 +532,10 @@ class Type(aristaproto.Message):
 class Field(aristaproto.Message):
     """A single field of a message type."""
 
-    kind: "FieldKind" = aristaproto.enum_field(1)
+    kind: "FieldKind" = aristaproto.enum_field(1)  # noqa: RUF009
     """The field type."""
 
-    cardinality: "FieldCardinality" = aristaproto.enum_field(2)
+    cardinality: "FieldCardinality" = aristaproto.enum_field(2)  # noqa: RUF009
     """The field cardinality."""
 
     number: int = aristaproto.int32_field(3)
@@ -563,7 +559,7 @@ class Field(aristaproto.Message):
     packed: bool = aristaproto.bool_field(8)
     """Whether to use alternative packed wire representation."""
 
-    options: List["Option"] = aristaproto.message_field(9)
+    options: list["Option"] = aristaproto.message_field(9)  # noqa: RUF009
     """The protocol buffer options."""
 
     json_name: str = aristaproto.string_field(10)
@@ -582,18 +578,18 @@ class Enum(aristaproto.Message):
     name: str = aristaproto.string_field(1)
     """Enum type name."""
 
-    enumvalue: List["EnumValue"] = aristaproto.message_field(
+    enumvalue: list["EnumValue"] = aristaproto.message_field(  # noqa: RUF009
         2, wraps=aristaproto.TYPE_ENUM
     )
     """Enum value definitions."""
 
-    options: List["Option"] = aristaproto.message_field(3)
+    options: list["Option"] = aristaproto.message_field(3)  # noqa: RUF009
     """Protocol buffer options."""
 
-    source_context: "SourceContext" = aristaproto.message_field(4)
+    source_context: "SourceContext" = aristaproto.message_field(4)  # noqa: RUF009
     """The source context."""
 
-    syntax: "Syntax" = aristaproto.enum_field(5)
+    syntax: "Syntax" = aristaproto.enum_field(5)  # noqa: RUF009
     """The source syntax."""
 
     edition: str = aristaproto.string_field(6)
@@ -612,7 +608,7 @@ class EnumValue(aristaproto.Message):
     number: int = aristaproto.int32_field(2)
     """Enum value number."""
 
-    options: List["Option"] = aristaproto.message_field(3)
+    options: list["Option"] = aristaproto.message_field(3)  # noqa: RUF009
     """Protocol buffer options."""
 
 
@@ -631,7 +627,7 @@ class Option(aristaproto.Message):
      `"google.api.http"`.
     """
 
-    value: "Any" = aristaproto.message_field(2)
+    value: "Any" = aristaproto.message_field(2)  # noqa: RUF009
     """
     The option's value packed in an Any message. If the value is a primitive,
      the corresponding wrapper type defined in google/protobuf/wrappers.proto
@@ -660,10 +656,10 @@ class Api(aristaproto.Message):
      followed by the interface's simple name.
     """
 
-    methods: List["Method"] = aristaproto.message_field(2)
+    methods: list["Method"] = aristaproto.message_field(2)  # noqa: RUF009
     """The methods of this interface, in unspecified order."""
 
-    options: List["Option"] = aristaproto.message_field(3)
+    options: list["Option"] = aristaproto.message_field(3)  # noqa: RUF009
     """Any metadata attached to the interface."""
 
     version: str = aristaproto.string_field(4)
@@ -689,16 +685,16 @@ class Api(aristaproto.Message):
      experimental, non-GA interfaces.
     """
 
-    source_context: "SourceContext" = aristaproto.message_field(5)
+    source_context: "SourceContext" = aristaproto.message_field(5)  # noqa: RUF009
     """
     Source context for the protocol buffer service represented by this
      message.
     """
 
-    mixins: List["Mixin"] = aristaproto.message_field(6)
+    mixins: list["Mixin"] = aristaproto.message_field(6)  # noqa: RUF009
     """Included interfaces. See [Mixin][]."""
 
-    syntax: "Syntax" = aristaproto.enum_field(7)
+    syntax: "Syntax" = aristaproto.enum_field(7)  # noqa: RUF009
     """The source syntax of the service."""
 
 
@@ -721,10 +717,10 @@ class Method(aristaproto.Message):
     response_streaming: bool = aristaproto.bool_field(5)
     """If true, the response is streamed."""
 
-    options: List["Option"] = aristaproto.message_field(6)
+    options: list["Option"] = aristaproto.message_field(6)  # noqa: RUF009
     """Any metadata attached to the method."""
 
-    syntax: "Syntax" = aristaproto.enum_field(7)
+    syntax: "Syntax" = aristaproto.enum_field(7)  # noqa: RUF009
     """The source syntax of this method."""
 
 
@@ -828,7 +824,7 @@ class FileDescriptorSet(aristaproto.Message):
      files it parses.
     """
 
-    file: List["FileDescriptorProto"] = aristaproto.message_field(1)
+    file: list["FileDescriptorProto"] = aristaproto.message_field(1)  # noqa: RUF009
 
 
 @dataclass(eq=False, repr=False)
@@ -837,26 +833,26 @@ class FileDescriptorProto(aristaproto.Message):
 
     name: str = aristaproto.string_field(1)
     package: str = aristaproto.string_field(2)
-    dependency: List[str] = aristaproto.string_field(3)
+    dependency: list[str] = aristaproto.string_field(3)  # noqa: RUF009
     """Names of files imported by this file."""
 
-    public_dependency: List[int] = aristaproto.int32_field(10)
+    public_dependency: list[int] = aristaproto.int32_field(10)  # noqa: RUF009
     """Indexes of the public imported files in the dependency list above."""
 
-    weak_dependency: List[int] = aristaproto.int32_field(11)
+    weak_dependency: list[int] = aristaproto.int32_field(11)  # noqa: RUF009
     """
     Indexes of the weak imported files in the dependency list.
      For Google-internal migration only. Do not use.
     """
 
-    message_type: List["DescriptorProto"] = aristaproto.message_field(4)
+    message_type: list["DescriptorProto"] = aristaproto.message_field(4)  # noqa: RUF009
     """All top-level definitions in this file."""
 
-    enum_type: List["EnumDescriptorProto"] = aristaproto.message_field(5)
-    service: List["ServiceDescriptorProto"] = aristaproto.message_field(6)
-    extension: List["FieldDescriptorProto"] = aristaproto.message_field(7)
-    options: "FileOptions" = aristaproto.message_field(8)
-    source_code_info: "SourceCodeInfo" = aristaproto.message_field(9)
+    enum_type: list["EnumDescriptorProto"] = aristaproto.message_field(5)  # noqa: RUF009
+    service: list["ServiceDescriptorProto"] = aristaproto.message_field(6)  # noqa: RUF009
+    extension: list["FieldDescriptorProto"] = aristaproto.message_field(7)  # noqa: RUF009
+    options: "FileOptions" = aristaproto.message_field(8)  # noqa: RUF009
+    source_code_info: "SourceCodeInfo" = aristaproto.message_field(9)  # noqa: RUF009
     """
     This field contains optional information about the original source code.
      You may safely remove this entire field without harming runtime
@@ -872,7 +868,7 @@ class FileDescriptorProto(aristaproto.Message):
      If `edition` is present, this value must be "editions".
     """
 
-    edition: "Edition" = aristaproto.enum_field(14)
+    edition: "Edition" = aristaproto.enum_field(14)  # noqa: RUF009
     """The edition of the proto file."""
 
 
@@ -881,17 +877,17 @@ class DescriptorProto(aristaproto.Message):
     """Describes a message type."""
 
     name: str = aristaproto.string_field(1)
-    field: List["FieldDescriptorProto"] = aristaproto.message_field(2)
-    extension: List["FieldDescriptorProto"] = aristaproto.message_field(6)
-    nested_type: List["DescriptorProto"] = aristaproto.message_field(3)
-    enum_type: List["EnumDescriptorProto"] = aristaproto.message_field(4)
-    extension_range: List["DescriptorProtoExtensionRange"] = aristaproto.message_field(
+    field: list["FieldDescriptorProto"] = aristaproto.message_field(2)  # noqa: RUF009
+    extension: list["FieldDescriptorProto"] = aristaproto.message_field(6)  # noqa: RUF009
+    nested_type: list["DescriptorProto"] = aristaproto.message_field(3)  # noqa: RUF009
+    enum_type: list["EnumDescriptorProto"] = aristaproto.message_field(4)  # noqa: RUF009
+    extension_range: list["DescriptorProtoExtensionRange"] = aristaproto.message_field(  # noqa: RUF009
         5
     )
-    oneof_decl: List["OneofDescriptorProto"] = aristaproto.message_field(8)
-    options: "MessageOptions" = aristaproto.message_field(7)
-    reserved_range: List["DescriptorProtoReservedRange"] = aristaproto.message_field(9)
-    reserved_name: List[str] = aristaproto.string_field(10)
+    oneof_decl: list["OneofDescriptorProto"] = aristaproto.message_field(8)  # noqa: RUF009
+    options: "MessageOptions" = aristaproto.message_field(7)  # noqa: RUF009
+    reserved_range: list["DescriptorProtoReservedRange"] = aristaproto.message_field(9)  # noqa: RUF009
+    reserved_name: list[str] = aristaproto.string_field(10)  # noqa: RUF009
     """
     Reserved field names, which may not be used by fields in the same message.
      A given name may only be reserved once.
@@ -902,7 +898,7 @@ class DescriptorProto(aristaproto.Message):
 class DescriptorProtoExtensionRange(aristaproto.Message):
     start: int = aristaproto.int32_field(1)
     end: int = aristaproto.int32_field(2)
-    options: "ExtensionRangeOptions" = aristaproto.message_field(3)
+    options: "ExtensionRangeOptions" = aristaproto.message_field(3)  # noqa: RUF009
 
 
 @dataclass(eq=False, repr=False)
@@ -919,20 +915,20 @@ class DescriptorProtoReservedRange(aristaproto.Message):
 
 @dataclass(eq=False, repr=False)
 class ExtensionRangeOptions(aristaproto.Message):
-    uninterpreted_option: List["UninterpretedOption"] = aristaproto.message_field(999)
+    uninterpreted_option: list["UninterpretedOption"] = aristaproto.message_field(999)  # noqa: RUF009
     """The parser stores options it doesn't recognize here. See above."""
 
-    declaration: List["ExtensionRangeOptionsDeclaration"] = aristaproto.message_field(2)
+    declaration: list["ExtensionRangeOptionsDeclaration"] = aristaproto.message_field(2)  # noqa: RUF009
     """
     For external users: DO NOT USE. We are in the process of open sourcing
      extension declaration and executing internal cleanups before it can be
      used externally.
     """
 
-    features: "FeatureSet" = aristaproto.message_field(50)
+    features: "FeatureSet" = aristaproto.message_field(50)  # noqa: RUF009
     """Any features defined in the specific edition."""
 
-    verification: "ExtensionRangeOptionsVerificationState" = aristaproto.enum_field(3)
+    verification: "ExtensionRangeOptionsVerificationState" = aristaproto.enum_field(3)  # noqa: RUF009
     """
     The verification state of the range.
      TODO: flip the default to DECLARATION once all empty ranges
@@ -978,8 +974,8 @@ class FieldDescriptorProto(aristaproto.Message):
 
     name: str = aristaproto.string_field(1)
     number: int = aristaproto.int32_field(3)
-    label: "FieldDescriptorProtoLabel" = aristaproto.enum_field(4)
-    type: "FieldDescriptorProtoType" = aristaproto.enum_field(5)
+    label: "FieldDescriptorProtoLabel" = aristaproto.enum_field(4)  # noqa: RUF009
+    type: "FieldDescriptorProtoType" = aristaproto.enum_field(5)  # noqa: RUF009
     """
     If type_name is set, this need not be set.  If both this and type_name
      are set, this must be one of TYPE_ENUM, TYPE_MESSAGE or TYPE_GROUP.
@@ -1022,7 +1018,7 @@ class FieldDescriptorProto(aristaproto.Message):
      it to camelCase.
     """
 
-    options: "FieldOptions" = aristaproto.message_field(8)
+    options: "FieldOptions" = aristaproto.message_field(8)  # noqa: RUF009
     proto3_optional: bool = aristaproto.bool_field(17)
     """
     If true, this is a proto3 "optional". When a proto3 field is optional, it
@@ -1054,7 +1050,7 @@ class OneofDescriptorProto(aristaproto.Message):
     """Describes a oneof."""
 
     name: str = aristaproto.string_field(1)
-    options: "OneofOptions" = aristaproto.message_field(2)
+    options: "OneofOptions" = aristaproto.message_field(2)  # noqa: RUF009
 
 
 @dataclass(eq=False, repr=False)
@@ -1062,10 +1058,10 @@ class EnumDescriptorProto(aristaproto.Message):
     """Describes an enum type."""
 
     name: str = aristaproto.string_field(1)
-    value: List["EnumValueDescriptorProto"] = aristaproto.message_field(2)
-    options: "EnumOptions" = aristaproto.message_field(3)
-    reserved_range: List["EnumDescriptorProtoEnumReservedRange"] = (
-        aristaproto.message_field(4)
+    value: list["EnumValueDescriptorProto"] = aristaproto.message_field(2)  # noqa: RUF009
+    options: "EnumOptions" = aristaproto.message_field(3)  # noqa: RUF009
+    reserved_range: list["EnumDescriptorProtoEnumReservedRange"] = (
+        aristaproto.message_field(4)  # noqa: RUF009
     )
     """
     Range of reserved numeric values. Reserved numeric values may not be used
@@ -1073,7 +1069,7 @@ class EnumDescriptorProto(aristaproto.Message):
      overlap.
     """
 
-    reserved_name: List[str] = aristaproto.string_field(5)
+    reserved_name: list[str] = aristaproto.string_field(5)  # noqa: RUF009
     """
     Reserved enum value names, which may not be reused. A given name may only
      be reserved once.
@@ -1101,7 +1097,7 @@ class EnumValueDescriptorProto(aristaproto.Message):
 
     name: str = aristaproto.string_field(1)
     number: int = aristaproto.int32_field(2)
-    options: "EnumValueOptions" = aristaproto.message_field(3)
+    options: "EnumValueOptions" = aristaproto.message_field(3)  # noqa: RUF009
 
 
 @dataclass(eq=False, repr=False)
@@ -1109,8 +1105,8 @@ class ServiceDescriptorProto(aristaproto.Message):
     """Describes a service."""
 
     name: str = aristaproto.string_field(1)
-    method: List["MethodDescriptorProto"] = aristaproto.message_field(2)
-    options: "ServiceOptions" = aristaproto.message_field(3)
+    method: list["MethodDescriptorProto"] = aristaproto.message_field(2)  # noqa: RUF009
+    options: "ServiceOptions" = aristaproto.message_field(3)  # noqa: RUF009
 
 
 @dataclass(eq=False, repr=False)
@@ -1125,7 +1121,7 @@ class MethodDescriptorProto(aristaproto.Message):
     """
 
     output_type: str = aristaproto.string_field(3)
-    options: "MethodOptions" = aristaproto.message_field(4)
+    options: "MethodOptions" = aristaproto.message_field(4)  # noqa: RUF009
     client_streaming: bool = aristaproto.bool_field(5)
     """Identifies if client streams multiple client messages"""
 
@@ -1179,7 +1175,7 @@ class FileOptions(aristaproto.Message):
      checks.
     """
 
-    optimize_for: "FileOptionsOptimizeMode" = aristaproto.enum_field(9)
+    optimize_for: "FileOptionsOptimizeMode" = aristaproto.enum_field(9)  # noqa: RUF009
     go_package: str = aristaproto.string_field(11)
     """
     Sets the Go package where structs generated from this .proto will be
@@ -1263,10 +1259,10 @@ class FileOptions(aristaproto.Message):
      determining the ruby package.
     """
 
-    features: "FeatureSet" = aristaproto.message_field(50)
+    features: "FeatureSet" = aristaproto.message_field(50)  # noqa: RUF009
     """Any features defined in the specific edition."""
 
-    uninterpreted_option: List["UninterpretedOption"] = aristaproto.message_field(999)
+    uninterpreted_option: list["UninterpretedOption"] = aristaproto.message_field(999)  # noqa: RUF009
     """
     The parser stores options it doesn't recognize here.
      See the documentation for the "Options" section above.
@@ -1359,10 +1355,10 @@ class MessageOptions(aristaproto.Message):
      teams have had time to migrate.
     """
 
-    features: "FeatureSet" = aristaproto.message_field(12)
+    features: "FeatureSet" = aristaproto.message_field(12)  # noqa: RUF009
     """Any features defined in the specific edition."""
 
-    uninterpreted_option: List["UninterpretedOption"] = aristaproto.message_field(999)
+    uninterpreted_option: list["UninterpretedOption"] = aristaproto.message_field(999)  # noqa: RUF009
     """The parser stores options it doesn't recognize here. See above."""
 
     def __post_init__(self) -> None:
@@ -1376,7 +1372,7 @@ class MessageOptions(aristaproto.Message):
 
 @dataclass(eq=False, repr=False)
 class FieldOptions(aristaproto.Message):
-    ctype: "FieldOptionsCType" = aristaproto.enum_field(1)
+    ctype: "FieldOptionsCType" = aristaproto.enum_field(1)  # noqa: RUF009
     """
     The ctype option instructs the C++ code generator to use a different
      representation of the field than it normally would.  See the specific
@@ -1397,7 +1393,7 @@ class FieldOptions(aristaproto.Message):
      the behavior.
     """
 
-    jstype: "FieldOptionsJsType" = aristaproto.enum_field(6)
+    jstype: "FieldOptionsJsType" = aristaproto.enum_field(6)  # noqa: RUF009
     """
     The jstype option determines the JavaScript type used for values of the
      field.  The option is permitted only for 64 bit integral and fixed types
@@ -1462,20 +1458,20 @@ class FieldOptions(aristaproto.Message):
      formats, e.g. when the field contains sensitive credentials.
     """
 
-    retention: "FieldOptionsOptionRetention" = aristaproto.enum_field(17)
-    targets: List["FieldOptionsOptionTargetType"] = aristaproto.enum_field(19)
-    edition_defaults: List["FieldOptionsEditionDefault"] = aristaproto.message_field(20)
-    features: "FeatureSet" = aristaproto.message_field(21)
+    retention: "FieldOptionsOptionRetention" = aristaproto.enum_field(17)  # noqa: RUF009
+    targets: list["FieldOptionsOptionTargetType"] = aristaproto.enum_field(19)  # noqa: RUF009
+    edition_defaults: list["FieldOptionsEditionDefault"] = aristaproto.message_field(20)  # noqa: RUF009
+    features: "FeatureSet" = aristaproto.message_field(21)  # noqa: RUF009
     """Any features defined in the specific edition."""
 
-    feature_support: "FieldOptionsFeatureSupport" = aristaproto.message_field(22)
-    uninterpreted_option: List["UninterpretedOption"] = aristaproto.message_field(999)
+    feature_support: "FieldOptionsFeatureSupport" = aristaproto.message_field(22)  # noqa: RUF009
+    uninterpreted_option: list["UninterpretedOption"] = aristaproto.message_field(999)  # noqa: RUF009
     """The parser stores options it doesn't recognize here. See above."""
 
 
 @dataclass(eq=False, repr=False)
 class FieldOptionsEditionDefault(aristaproto.Message):
-    edition: "Edition" = aristaproto.enum_field(3)
+    edition: "Edition" = aristaproto.enum_field(3)  # noqa: RUF009
     value: str = aristaproto.string_field(2)
 
 
@@ -1483,14 +1479,14 @@ class FieldOptionsEditionDefault(aristaproto.Message):
 class FieldOptionsFeatureSupport(aristaproto.Message):
     """Information about the support window of a feature."""
 
-    edition_introduced: "Edition" = aristaproto.enum_field(1)
+    edition_introduced: "Edition" = aristaproto.enum_field(1)  # noqa: RUF009
     """
     The edition that this feature was first available in.  In editions
      earlier than this one, the default assigned to EDITION_LEGACY will be
      used, and proto files will not be able to override it.
     """
 
-    edition_deprecated: "Edition" = aristaproto.enum_field(2)
+    edition_deprecated: "Edition" = aristaproto.enum_field(2)  # noqa: RUF009
     """
     The edition this feature becomes deprecated in.  Using this after this
      edition may trigger warnings.
@@ -1502,7 +1498,7 @@ class FieldOptionsFeatureSupport(aristaproto.Message):
      was marked deprecated in.
     """
 
-    edition_removed: "Edition" = aristaproto.enum_field(4)
+    edition_removed: "Edition" = aristaproto.enum_field(4)  # noqa: RUF009
     """
     The edition this feature is no longer available in.  In editions after
      this one, the last default assigned will be used, and proto files will
@@ -1512,10 +1508,10 @@ class FieldOptionsFeatureSupport(aristaproto.Message):
 
 @dataclass(eq=False, repr=False)
 class OneofOptions(aristaproto.Message):
-    features: "FeatureSet" = aristaproto.message_field(1)
+    features: "FeatureSet" = aristaproto.message_field(1)  # noqa: RUF009
     """Any features defined in the specific edition."""
 
-    uninterpreted_option: List["UninterpretedOption"] = aristaproto.message_field(999)
+    uninterpreted_option: list["UninterpretedOption"] = aristaproto.message_field(999)  # noqa: RUF009
     """The parser stores options it doesn't recognize here. See above."""
 
 
@@ -1545,10 +1541,10 @@ class EnumOptions(aristaproto.Message):
      had time to migrate.
     """
 
-    features: "FeatureSet" = aristaproto.message_field(7)
+    features: "FeatureSet" = aristaproto.message_field(7)  # noqa: RUF009
     """Any features defined in the specific edition."""
 
-    uninterpreted_option: List["UninterpretedOption"] = aristaproto.message_field(999)
+    uninterpreted_option: list["UninterpretedOption"] = aristaproto.message_field(999)  # noqa: RUF009
     """The parser stores options it doesn't recognize here. See above."""
 
     def __post_init__(self) -> None:
@@ -1570,7 +1566,7 @@ class EnumValueOptions(aristaproto.Message):
      this is a formalization for deprecating enum values.
     """
 
-    features: "FeatureSet" = aristaproto.message_field(2)
+    features: "FeatureSet" = aristaproto.message_field(2)  # noqa: RUF009
     """Any features defined in the specific edition."""
 
     debug_redact: bool = aristaproto.bool_field(3)
@@ -1580,13 +1576,13 @@ class EnumValueOptions(aristaproto.Message):
      credentials.
     """
 
-    uninterpreted_option: List["UninterpretedOption"] = aristaproto.message_field(999)
+    uninterpreted_option: list["UninterpretedOption"] = aristaproto.message_field(999)  # noqa: RUF009
     """The parser stores options it doesn't recognize here. See above."""
 
 
 @dataclass(eq=False, repr=False)
 class ServiceOptions(aristaproto.Message):
-    features: "FeatureSet" = aristaproto.message_field(34)
+    features: "FeatureSet" = aristaproto.message_field(34)  # noqa: RUF009
     """Any features defined in the specific edition."""
 
     deprecated: bool = aristaproto.bool_field(33)
@@ -1597,7 +1593,7 @@ class ServiceOptions(aristaproto.Message):
      this is a formalization for deprecating services.
     """
 
-    uninterpreted_option: List["UninterpretedOption"] = aristaproto.message_field(999)
+    uninterpreted_option: list["UninterpretedOption"] = aristaproto.message_field(999)  # noqa: RUF009
     """The parser stores options it doesn't recognize here. See above."""
 
 
@@ -1611,11 +1607,11 @@ class MethodOptions(aristaproto.Message):
      this is a formalization for deprecating methods.
     """
 
-    idempotency_level: "MethodOptionsIdempotencyLevel" = aristaproto.enum_field(34)
-    features: "FeatureSet" = aristaproto.message_field(35)
+    idempotency_level: "MethodOptionsIdempotencyLevel" = aristaproto.enum_field(34)  # noqa: RUF009
+    features: "FeatureSet" = aristaproto.message_field(35)  # noqa: RUF009
     """Any features defined in the specific edition."""
 
-    uninterpreted_option: List["UninterpretedOption"] = aristaproto.message_field(999)
+    uninterpreted_option: list["UninterpretedOption"] = aristaproto.message_field(999)  # noqa: RUF009
     """The parser stores options it doesn't recognize here. See above."""
 
 
@@ -1630,7 +1626,7 @@ class UninterpretedOption(aristaproto.Message):
      in them.
     """
 
-    name: List["UninterpretedOptionNamePart"] = aristaproto.message_field(2)
+    name: list["UninterpretedOptionNamePart"] = aristaproto.message_field(2)  # noqa: RUF009
     identifier_value: str = aristaproto.string_field(3)
     """
     The value of the uninterpreted option, in whatever type the tokenizer
@@ -1669,14 +1665,14 @@ class FeatureSet(aristaproto.Message):
      conflict here.
     """
 
-    field_presence: "FeatureSetFieldPresence" = aristaproto.enum_field(1)
-    enum_type: "FeatureSetEnumType" = aristaproto.enum_field(2)
-    repeated_field_encoding: "FeatureSetRepeatedFieldEncoding" = aristaproto.enum_field(
+    field_presence: "FeatureSetFieldPresence" = aristaproto.enum_field(1)  # noqa: RUF009
+    enum_type: "FeatureSetEnumType" = aristaproto.enum_field(2)  # noqa: RUF009
+    repeated_field_encoding: "FeatureSetRepeatedFieldEncoding" = aristaproto.enum_field(  # noqa: RUF009
         3
     )
-    utf8_validation: "FeatureSetUtf8Validation" = aristaproto.enum_field(4)
-    message_encoding: "FeatureSetMessageEncoding" = aristaproto.enum_field(5)
-    json_format: "FeatureSetJsonFormat" = aristaproto.enum_field(6)
+    utf8_validation: "FeatureSetUtf8Validation" = aristaproto.enum_field(4)  # noqa: RUF009
+    message_encoding: "FeatureSetMessageEncoding" = aristaproto.enum_field(5)  # noqa: RUF009
+    json_format: "FeatureSetJsonFormat" = aristaproto.enum_field(6)  # noqa: RUF009
 
 
 @dataclass(eq=False, repr=False)
@@ -1688,16 +1684,16 @@ class FeatureSetDefaults(aristaproto.Message):
      for the closest matching edition, followed by proto merges.
     """
 
-    defaults: List["FeatureSetDefaultsFeatureSetEditionDefault"] = (
-        aristaproto.message_field(1)
+    defaults: list["FeatureSetDefaultsFeatureSetEditionDefault"] = (
+        aristaproto.message_field(1)  # noqa: RUF009
     )
-    minimum_edition: "Edition" = aristaproto.enum_field(4)
+    minimum_edition: "Edition" = aristaproto.enum_field(4)  # noqa: RUF009
     """
     The minimum supported edition (inclusive) when this was constructed.
      Editions before this will not have defaults.
     """
 
-    maximum_edition: "Edition" = aristaproto.enum_field(5)
+    maximum_edition: "Edition" = aristaproto.enum_field(5)  # noqa: RUF009
     """
     The maximum known edition (inclusive) when this was constructed. Editions
      after this will not have reliable defaults.
@@ -1713,14 +1709,14 @@ class FeatureSetDefaultsFeatureSetEditionDefault(aristaproto.Message):
      be used.  This field must be in strict ascending order by edition.
     """
 
-    edition: "Edition" = aristaproto.enum_field(3)
-    overridable_features: "FeatureSet" = aristaproto.message_field(4)
+    edition: "Edition" = aristaproto.enum_field(3)  # noqa: RUF009
+    overridable_features: "FeatureSet" = aristaproto.message_field(4)  # noqa: RUF009
     """Defaults of features that can be overridden in this edition."""
 
-    fixed_features: "FeatureSet" = aristaproto.message_field(5)
+    fixed_features: "FeatureSet" = aristaproto.message_field(5)  # noqa: RUF009
     """Defaults of features that can't be overridden in this edition."""
 
-    features: "FeatureSet" = aristaproto.message_field(2)
+    features: "FeatureSet" = aristaproto.message_field(2)  # noqa: RUF009
     """
     TODO Deprecate and remove this field, which is just the
      above two merged.
@@ -1734,7 +1730,7 @@ class SourceCodeInfo(aristaproto.Message):
      FileDescriptorProto was generated.
     """
 
-    location: List["SourceCodeInfoLocation"] = aristaproto.message_field(1)
+    location: list["SourceCodeInfoLocation"] = aristaproto.message_field(1)  # noqa: RUF009
     """
     A Location identifies a piece of source code in a .proto file which
      corresponds to a particular definition.  This information is intended
@@ -1784,7 +1780,7 @@ class SourceCodeInfo(aristaproto.Message):
 
 @dataclass(eq=False, repr=False)
 class SourceCodeInfoLocation(aristaproto.Message):
-    path: List[int] = aristaproto.int32_field(1)
+    path: list[int] = aristaproto.int32_field(1)  # noqa: RUF009
     """
     Identifies which part of the FileDescriptorProto was defined at this
      location.
@@ -1811,7 +1807,7 @@ class SourceCodeInfoLocation(aristaproto.Message):
      of the label to the terminating semicolon).
     """
 
-    span: List[int] = aristaproto.int32_field(2)
+    span: list[int] = aristaproto.int32_field(2)  # noqa: RUF009
     """
     Always has exactly three or four elements: start line, start column,
      end line (optional, otherwise assumed same as start line), end column.
@@ -1872,7 +1868,7 @@ class SourceCodeInfoLocation(aristaproto.Message):
     """
 
     trailing_comments: str = aristaproto.string_field(4)
-    leading_detached_comments: List[str] = aristaproto.string_field(6)
+    leading_detached_comments: list[str] = aristaproto.string_field(6)  # noqa: RUF009
 
 
 @dataclass(eq=False, repr=False)
@@ -1883,7 +1879,7 @@ class GeneratedCodeInfo(aristaproto.Message):
      source file, but may contain references to different source .proto files.
     """
 
-    annotation: List["GeneratedCodeInfoAnnotation"] = aristaproto.message_field(1)
+    annotation: list["GeneratedCodeInfoAnnotation"] = aristaproto.message_field(1)  # noqa: RUF009
     """
     An Annotation connects some span of text in generated code to an element
      of its generating .proto file.
@@ -1892,7 +1888,7 @@ class GeneratedCodeInfo(aristaproto.Message):
 
 @dataclass(eq=False, repr=False)
 class GeneratedCodeInfoAnnotation(aristaproto.Message):
-    path: List[int] = aristaproto.int32_field(1)
+    path: list[int] = aristaproto.int32_field(1)  # noqa: RUF009
     """
     Identifies the element in the original source .proto file. This field
      is formatted the same as SourceCodeInfo.Location.path.
@@ -1914,7 +1910,7 @@ class GeneratedCodeInfoAnnotation(aristaproto.Message):
      the last relevant byte (so the length of the text = end - begin).
     """
 
-    semantic: "GeneratedCodeInfoAnnotationSemantic" = aristaproto.enum_field(5)
+    semantic: "GeneratedCodeInfoAnnotationSemantic" = aristaproto.enum_field(5)  # noqa: RUF009
 
 
 @dataclass(eq=False, repr=False)
@@ -2009,8 +2005,6 @@ class Empty(aristaproto.Message):
            rpc Bar(google.protobuf.Empty) returns (google.protobuf.Empty);
          }
     """
-
-    pass
 
 
 @dataclass(eq=False, repr=False)
@@ -2217,7 +2211,7 @@ class FieldMask(aristaproto.Message):
      `INVALID_ARGUMENT` error if any path is unmappable.
     """
 
-    paths: List[str] = aristaproto.string_field(1)
+    paths: list[str] = aristaproto.string_field(1)  # noqa: RUF009
     """The set of field mask paths."""
 
 
@@ -2234,7 +2228,7 @@ class Struct(aristaproto.Message):
      The JSON representation for `Struct` is JSON object.
     """
 
-    fields: Dict[str, "Value"] = aristaproto.map_field(
+    fields: dict[str, "Value"] = aristaproto.map_field(  # noqa: RUF009
         1, aristaproto.TYPE_STRING, aristaproto.TYPE_MESSAGE
     )
     """Unordered map of dynamically typed values."""
@@ -2247,9 +2241,9 @@ class Struct(aristaproto.Message):
     @from_dict.instancemethod
     def from_dict(self, value: Mapping[str, Any]) -> Self:
         fields = {**value}
-        for k in fields:
-            if hasattr(fields[k], "from_dict"):
-                fields[k] = fields[k].from_dict()
+        for k, v in fields.items():
+            if hasattr(v, "from_dict"):
+                fields[k] = v.from_dict()
 
         self.fields = fields
         return self
@@ -2258,7 +2252,7 @@ class Struct(aristaproto.Message):
         self,
         casing: aristaproto.Casing = aristaproto.Casing.CAMEL,
         include_default_values: bool = False,
-    ) -> Dict[str, Any]:
+    ) -> dict[str, Any]:
         output = {**self.fields}
         for k in self.fields:
             if hasattr(self.fields[k], "to_dict"):
@@ -2277,7 +2271,7 @@ class Value(aristaproto.Message):
      The JSON representation for `Value` is JSON value.
     """
 
-    null_value: "NullValue" = aristaproto.enum_field(1, group="kind")
+    null_value: "NullValue" = aristaproto.enum_field(1, group="kind")  # noqa: RUF009
     """Represents a null value."""
 
     number_value: float = aristaproto.double_field(2, group="kind")
@@ -2289,10 +2283,10 @@ class Value(aristaproto.Message):
     bool_value: bool = aristaproto.bool_field(4, group="kind")
     """Represents a boolean value."""
 
-    struct_value: "Struct" = aristaproto.message_field(5, group="kind")
+    struct_value: "Struct" = aristaproto.message_field(5, group="kind")  # noqa: RUF009
     """Represents a structured value."""
 
-    list_value: "ListValue" = aristaproto.message_field(6, group="kind")
+    list_value: "ListValue" = aristaproto.message_field(6, group="kind")  # noqa: RUF009
     """Represents a repeated `Value`."""
 
 
@@ -2304,7 +2298,7 @@ class ListValue(aristaproto.Message):
      The JSON representation for `ListValue` is JSON array.
     """
 
-    values: List["Value"] = aristaproto.message_field(1)
+    values: list["Value"] = aristaproto.message_field(1)  # noqa: RUF009
     """Repeated field of dynamically typed values."""
 
 

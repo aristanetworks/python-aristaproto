@@ -1,14 +1,9 @@
 import re
 from collections import defaultdict
+from collections.abc import Iterator
 from dataclasses import (
     dataclass,
     field,
-)
-from typing import (
-    Dict,
-    Iterator,
-    List,
-    Tuple,
 )
 
 
@@ -17,7 +12,7 @@ class ModuleValidator:
     line_iterator: Iterator[str]
     line_number: int = field(init=False, default=0)
 
-    collisions: Dict[str, List[Tuple[int, str]]] = field(
+    collisions: dict[str, list[tuple[int, str]]] = field(
         init=False, default_factory=lambda: defaultdict(list)
     )
 
@@ -101,21 +96,13 @@ class ModuleValidator:
         # Skip lines with indentation or comments
         if (
             # Skip indents and whitespace.
-            line.startswith(" ")
-            or line == "\n"
-            or line.startswith("\t")
-            or
-            # Skip comments
-            line.startswith("#")
-            or
-            # Skip  decorators
-            line.startswith("@")
+            line.startswith((" ", "\t", "#", "@")) or line == "\n"
         ):
             self.line_number += 1
             return
 
         # Skip docstrings.
-        if line.startswith('"""') or line.startswith("'''"):
+        if line.startswith(('"""', "'''")):
             quote = line[0] * 3
             line = line[3:]
             while quote not in line:
@@ -124,7 +111,7 @@ class ModuleValidator:
             return
 
         # Evaluate Imports.
-        if line.startswith("from ") or line.startswith("import "):
+        if line.startswith(("from ", "import ")):
             if "(" in line or "\\" in line:
                 self.evaluate_multiline_import(line)
             else:
