@@ -313,7 +313,9 @@ class OutputTemplate:
             imports.add("warnings")
 
         if self.builtins_import:
-            imports.add("builtins")
+            # Generated field names have no leading underscores, so this alias
+            # cannot be shadowed by a field named "builtins".
+            imports.add("builtins as _builtins")
         return imports
 
 
@@ -558,7 +560,7 @@ class FieldCompiler(MessageCompiler):
     def annotation(self) -> str:
         py_type = self.py_type
         if self.use_builtins:
-            py_type = f"builtins.{py_type}"
+            py_type = f"_builtins.{py_type}"
         if self.repeated:
             return self.typing_compiler.list(py_type)
         if self.optional:
