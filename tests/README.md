@@ -52,6 +52,7 @@ You can add multiple `.proto` files to the test case, as long as one file matche
 ```python
 from tests.output_aristaproto.bool.bool import Test
 
+
 def test_value():
     message = Test()
     assert not message.value, "Boolean is False by default"

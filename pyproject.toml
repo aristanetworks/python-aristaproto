@@ -12,7 +12,7 @@ packages = [
 ]
 
 [tool.poetry.dependencies]
-python = "^3.9"
+python = "^3.10"
 # The Ruff version is also set in .pre-commit-config.yaml
 ruff = { version = ">=0.11.11", optional = true }
 grpclib = "^0.4.1"
