@@ -177,6 +177,7 @@ env_list =
     py310
 
 [testenv]
+extras = compiler
 commands =
     pytest {posargs: --cov aristaproto}
 poetry_dep_groups =
