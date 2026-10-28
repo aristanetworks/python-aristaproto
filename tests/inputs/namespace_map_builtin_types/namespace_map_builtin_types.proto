@@ -1,0 +1,11 @@
+syntax = "proto3";
+
+package namespace_map_builtin_types;
+
+// Map arguments must resolve builtin types regardless of field order.
+message Test {
+    map<string, string> before = 1;
+    int32 str = 2;
+    map<string, string> after = 3;
+    int32 builtins = 4;
+}

@@ -473,11 +473,18 @@ class FieldCompiler(MessageCompiler):
     def pydantic_imports(self) -> set[str]:
         return set()
 
+    def _qualify_builtin_type(self, py_type: str) -> str:
+        """Resolve builtin names in the containing message's namespace."""
+        if py_type in self.parent.builtins_types or (
+            py_type == self.py_name and self.py_name in dir(builtins)
+        ):
+            return f"_builtins.{py_type}"
+        return py_type
+
     @property
     def use_builtins(self) -> bool:
-        return self.py_type in self.parent.builtins_types or (
-            self.py_type == self.py_name and self.py_name in dir(builtins)
-        )
+        py_type = self.py_type
+        return self._qualify_builtin_type(py_type) != py_type
 
     def add_imports_to(self, output_file: OutputTemplate) -> None:
         output_file.datetime_imports.update(self.datetime_imports)
@@ -558,9 +565,7 @@ class FieldCompiler(MessageCompiler):
 
     @property
     def annotation(self) -> str:
-        py_type = self.py_type
-        if self.use_builtins:
-            py_type = f"_builtins.{py_type}"
+        py_type = self._qualify_builtin_type(self.py_type)
         if self.repeated:
             return self.typing_compiler.list(py_type)
         if self.optional:
@@ -635,8 +640,18 @@ class MapEntryCompiler(FieldCompiler):
         return "map"
 
     @property
+    def use_builtins(self) -> bool:
+        return any(
+            self._qualify_builtin_type(py_type) != py_type
+            for py_type in (self.py_k_type, self.py_v_type)
+        )
+
+    @property
     def annotation(self) -> str:
-        return self.typing_compiler.dict(self.py_k_type, self.py_v_type)
+        return self.typing_compiler.dict(
+            self._qualify_builtin_type(self.py_k_type),
+            self._qualify_builtin_type(self.py_v_type),
+        )
 
     @property
     def repeated(self) -> bool:
