@@ -494,8 +494,11 @@ Each Python 3.11+ CI job generates its fixtures and runs the full test suite.
 A separate Python 3.11 generation job provides fixtures and a built wheel to the
 Python 3.10 runtime job, which uses uv without Poetry or compiler dependencies. Runtime dependencies
 and extras use standard project metadata, and Poetry and uv share the standard
-`dev` and `test` dependency groups. Compiler unit tests live in `tests/compiler`
-and run as part of the full suite on Python 3.11+.
+`poetry`, `compiler`, `lint`, `dev`, and `test` dependency groups. CI bootstraps
+Poetry from its pinned group, installs compiler/test dependencies from
+`poetry.lock`, and requires wheels for dependencies downloaded from package
+indexes. Compiler unit tests live in `tests/compiler` and run as part of the full
+suite on Python 3.11+.
 
 To run the full suite across local Python environments with tox, run:
 
@@ -515,7 +518,7 @@ Then activate a separate Python 3.10 virtual environment and install the wheel
 and shared `test` dependency group directly from `pyproject.toml` with uv:
 
 ```sh
-uv pip install --group test dist/*.whl
+uv pip install --no-build --group test dist/*.whl
 python -m pytest tests/ --ignore=tests/compiler
 ```
 
