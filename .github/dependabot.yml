@@ -7,6 +7,8 @@ updates:
       - "/"
     schedule:
       interval: "daily"
+    cooldown:
+      default-days: 7
     groups:
       prod:
         dependency-type: "production"
@@ -22,5 +24,7 @@ updates:
     directory: "/"
     schedule:
       interval: "daily"
+    cooldown:
+      default-days: 7
     commit-message:
       prefix: "CI: "

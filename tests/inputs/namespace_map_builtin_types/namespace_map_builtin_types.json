@@ -1,0 +1,6 @@
+{
+  "before": {"first": "value"},
+  "str": 7,
+  "after": {"second": "value"},
+  "builtins": 8
+}

@@ -1,3 +1,4 @@
+# Message fixtures intentionally match the default generator's typing syntax.
 import json
 import sys
 from dataclasses import dataclass
@@ -9,11 +10,7 @@ from inspect import (
     Parameter,
     signature,
 )
-from typing import (
-    Dict,
-    List,
-    Optional,
-)
+from typing import Dict, List, Optional  # noqa: UP035
 from unittest.mock import ANY
 
 import pytest
@@ -28,7 +25,7 @@ def test_has_field():
 
     @dataclass
     class Foo(aristaproto.Message):
-        bar: Bar = aristaproto.message_field(1)
+        bar: Bar = aristaproto.message_field(1)  # noqa: RUF009
 
     # Unset by default
     foo = Foo()
@@ -52,8 +49,8 @@ def test_has_field():
 
     @dataclass
     class WithCollections(aristaproto.Message):
-        test_list: List[str] = aristaproto.string_field(1)
-        test_map: Dict[str, str] = aristaproto.map_field(
+        test_list: List[str] = aristaproto.string_field(1)  # noqa: RUF009, UP006
+        test_map: Dict[str, str] = aristaproto.map_field(  # noqa: RUF009, UP006
             2, aristaproto.TYPE_STRING, aristaproto.TYPE_STRING
         )
 
@@ -78,7 +75,7 @@ def test_class_init():
     @dataclass
     class Foo(aristaproto.Message):
         name: str = aristaproto.string_field(1)
-        child: Bar = aristaproto.message_field(2)
+        child: Bar = aristaproto.message_field(2)  # noqa: RUF009
 
     foo = Foo(name="foo", child=Bar(name="bar"))
 
@@ -93,7 +90,7 @@ def test_enum_as_int_json():
 
     @dataclass
     class Foo(aristaproto.Message):
-        bar: TestEnum = aristaproto.enum_field(1)
+        bar: TestEnum = aristaproto.enum_field(1)  # noqa: RUF009
 
     # JSON strings are supported, but ints should still be supported too.
     foo = Foo().from_dict({"bar": 1})
@@ -140,7 +137,7 @@ def test_oneof_support():
     class Foo(aristaproto.Message):
         bar: int = aristaproto.int32_field(1, group="group1")
         baz: str = aristaproto.string_field(2, group="group1")
-        sub: Sub = aristaproto.message_field(3, group="group2")
+        sub: Sub = aristaproto.message_field(3, group="group2")  # noqa: RUF009
         abc: str = aristaproto.string_field(4, group="group2")
 
     foo = Foo()
@@ -264,7 +261,7 @@ def test_dict_casing():
 def test_optional_flag():
     @dataclass
     class Request(aristaproto.Message):
-        flag: Optional[bool] = aristaproto.message_field(1, wraps=aristaproto.TYPE_BOOL)
+        flag: Optional[bool] = aristaproto.message_field(1, wraps=aristaproto.TYPE_BOOL)  # noqa: UP045
 
     # Serialization of not passed vs. set vs. zero-value.
     assert bytes(Request()) == b""
@@ -279,7 +276,7 @@ def test_optional_flag():
 def test_optional_datetime_to_dict():
     @dataclass
     class Request(aristaproto.Message):
-        date: Optional[datetime] = aristaproto.message_field(1, optional=True)
+        date: Optional[datetime] = aristaproto.message_field(1, optional=True)  # noqa: RUF009, UP045
 
     # Check dict serialization
     assert Request().to_dict() == {}
@@ -452,7 +449,7 @@ def test_to_dict_default_values():
     class TestParentMessage(aristaproto.Message):
         some_int: int = aristaproto.int32_field(1)
         some_double: float = aristaproto.double_field(2)
-        some_message: TestChildMessage = aristaproto.message_field(3)
+        some_message: TestChildMessage = aristaproto.message_field(3)  # noqa: RUF009
 
     test = TestParentMessage().from_dict({"someInt": 0, "someDouble": 1.2})
 
@@ -474,8 +471,8 @@ def test_to_dict_default_values():
 def test_to_dict_datetime_values():
     @dataclass
     class TestDatetimeMessage(aristaproto.Message):
-        bar: datetime = aristaproto.message_field(1)
-        baz: timedelta = aristaproto.message_field(2)
+        bar: datetime = aristaproto.message_field(1)  # noqa: RUF009
+        baz: timedelta = aristaproto.message_field(2)  # noqa: RUF009
 
     test = TestDatetimeMessage().from_dict(
         {"bar": "2020-01-01T00:00:00Z", "baz": "86400.000s"}
@@ -502,7 +499,7 @@ def test_oneof_default_value_set_causes_writes_wire():
     class Foo(aristaproto.Message):
         bar: int = aristaproto.int32_field(1, group="group1")
         baz: str = aristaproto.string_field(2, group="group1")
-        qux: Empty = aristaproto.message_field(3, group="group1")
+        qux: Empty = aristaproto.message_field(3, group="group1")  # noqa: RUF009
 
     def _round_trip_serialization(foo: Foo) -> Foo:
         return Foo().parse(bytes(foo))
@@ -579,51 +576,53 @@ def test_bool():
 
 
 # valid ISO datetimes according to https://www.myintervals.com/blog/2009/05/20/iso-8601-date-validation-that-doesnt-suck/
-iso_candidates = """2009-12-12T12:34
-2009
-2009-05-19
-2009-05-19
-20090519
-2009123
-2009-05
-2009-123
-2009-222
-2009-001
-2009-W01-1
-2009-W51-1
-2009-W33
-2009W511
-2009-05-19
-2009-05-19 00:00
-2009-05-19 14
-2009-05-19 14:31
-2009-05-19 14:39:22
-2009-05-19T14:39Z
-2009-W21-2
-2009-W21-2T01:22
-2009-139
-2009-05-19 14:39:22-06:00
-2009-05-19 14:39:22+0600
-2009-05-19 14:39:22-01
-20090621T0545Z
-2007-04-06T00:00
-2007-04-05T24:00
-2010-02-18T16:23:48.5
-2010-02-18T16:23:48,444
-2010-02-18T16:23:48,3-06:00
-2010-02-18T16:23:00.4
-2010-02-18T16:23:00,25
-2010-02-18T16:23:00.33+0600
-2010-02-18T16:00:00.23334444
-2010-02-18T16:00:00,2283
-2009-05-19 143922
-2009-05-19 1439""".split("\n")
+iso_candidates = [
+    "2009-12-12T12:34",
+    "2009",
+    "2009-05-19",
+    "2009-05-19",
+    "20090519",
+    "2009123",
+    "2009-05",
+    "2009-123",
+    "2009-222",
+    "2009-001",
+    "2009-W01-1",
+    "2009-W51-1",
+    "2009-W33",
+    "2009W511",
+    "2009-05-19",
+    "2009-05-19 00:00",
+    "2009-05-19 14",
+    "2009-05-19 14:31",
+    "2009-05-19 14:39:22",
+    "2009-05-19T14:39Z",
+    "2009-W21-2",
+    "2009-W21-2T01:22",
+    "2009-139",
+    "2009-05-19 14:39:22-06:00",
+    "2009-05-19 14:39:22+0600",
+    "2009-05-19 14:39:22-01",
+    "20090621T0545Z",
+    "2007-04-06T00:00",
+    "2007-04-05T24:00",
+    "2010-02-18T16:23:48.5",
+    "2010-02-18T16:23:48,444",
+    "2010-02-18T16:23:48,3-06:00",
+    "2010-02-18T16:23:00.4",
+    "2010-02-18T16:23:00,25",
+    "2010-02-18T16:23:00.33+0600",
+    "2010-02-18T16:00:00.23334444",
+    "2010-02-18T16:00:00,2283",
+    "2009-05-19 143922",
+    "2009-05-19 1439",
+]
 
 
 def test_iso_datetime():
     @dataclass
     class Envelope(aristaproto.Message):
-        ts: datetime = aristaproto.message_field(1)
+        ts: datetime = aristaproto.message_field(1)  # noqa: RUF009
 
     msg = Envelope()
 
@@ -635,12 +634,12 @@ def test_iso_datetime():
 def test_iso_datetime_list():
     @dataclass
     class Envelope(aristaproto.Message):
-        timestamps: List[datetime] = aristaproto.message_field(1)
+        timestamps: List[datetime] = aristaproto.message_field(1)  # noqa: RUF009, UP006
 
     msg = Envelope()
 
     msg.from_dict({"timestamps": iso_candidates})
-    assert all([isinstance(item, datetime) for item in msg.timestamps])
+    assert all(isinstance(item, datetime) for item in msg.timestamps)
 
 
 def test_service_argument__expected_parameter():
@@ -656,7 +655,7 @@ def test_is_set():
     @dataclass
     class Spam(aristaproto.Message):
         foo: bool = aristaproto.bool_field(1)
-        bar: Optional[int] = aristaproto.int32_field(2, optional=True)
+        bar: Optional[int] = aristaproto.int32_field(2, optional=True)  # noqa: UP045
 
     assert not Spam().is_set("foo")
     assert not Spam().is_set("bar")
@@ -669,7 +668,7 @@ def test_equality_comparison():
 
     msg = TestMessage(value=True)
 
-    assert msg == msg
+    assert msg.__eq__(msg) is True
     assert msg == ANY
     assert msg == TestMessage(value=True)
     assert msg != 1

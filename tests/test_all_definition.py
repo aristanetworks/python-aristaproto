@@ -4,8 +4,7 @@ def test_all_definition():
 
     These modules have been chosen since they contain messages, services and enums.
     """
-    import tests.output_aristaproto.enum as enum
-    import tests.output_aristaproto.service as service
+    from tests.output_aristaproto import enum, service
 
     assert service.__all__ == (
         "ThingType",

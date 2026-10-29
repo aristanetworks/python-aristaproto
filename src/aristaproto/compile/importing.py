@@ -4,11 +4,6 @@ import os
 import re
 from typing import (
     TYPE_CHECKING,
-    Dict,
-    List,
-    Set,
-    Tuple,
-    Type,
 )
 
 from ..casing import safe_snake_case
@@ -19,7 +14,7 @@ from .naming import pythonize_class_name
 if TYPE_CHECKING:
     from ..plugin.typing_compiler import TypingCompiler
 
-WRAPPER_TYPES: Dict[str, Type] = {
+WRAPPER_TYPES: dict[str, type] = {
     ".google.protobuf.DoubleValue": google_protobuf.DoubleValue,
     ".google.protobuf.FloatValue": google_protobuf.FloatValue,
     ".google.protobuf.Int32Value": google_protobuf.Int32Value,
@@ -32,7 +27,7 @@ WRAPPER_TYPES: Dict[str, Type] = {
 }
 
 
-def parse_source_type_name(field_type_name: str) -> Tuple[str, str]:
+def parse_source_type_name(field_type_name: str) -> tuple[str, str]:
     """
     Split full source type name into package and type name.
     E.g. 'root.package.Message' -> ('root.package', 'Message')
@@ -74,8 +69,8 @@ def get_type_reference(
 
     source_package, source_type = parse_source_type_name(source_type)
 
-    current_package: List[str] = package.split(".") if package else []
-    py_package: List[str] = source_package.split(".") if source_package else []
+    current_package: list[str] = package.split(".") if package else []
+    py_package: list[str] = source_package.split(".") if source_package else []
     py_type: str = pythonize_class_name(source_type)
 
     compiling_google_protobuf = current_package == ["google", "protobuf"]
@@ -100,7 +95,7 @@ def get_type_reference(
     return reference_cousin(current_package, imports, py_package, py_type)
 
 
-def reference_absolute(imports: Set[str], py_package: List[str], py_type: str) -> str:
+def reference_absolute(imports: set[str], py_package: list[str], py_type: str) -> str:
     """
     Returns a reference to a python type located in the root, i.e. sys.path.
     """
@@ -118,7 +113,7 @@ def reference_sibling(py_type: str) -> str:
 
 
 def reference_descendent(
-    current_package: List[str], imports: Set[str], py_package: List[str], py_type: str
+    current_package: list[str], imports: set[str], py_package: list[str], py_type: str
 ) -> str:
     """
     Returns a reference to a python type in a package that is a descendent of the
@@ -138,7 +133,7 @@ def reference_descendent(
 
 
 def reference_ancestor(
-    current_package: List[str], imports: Set[str], py_package: List[str], py_type: str
+    current_package: list[str], imports: set[str], py_package: list[str], py_type: str
 ) -> str:
     """
     Returns a reference to a python type in a package which is an ancestor to the
@@ -161,7 +156,7 @@ def reference_ancestor(
 
 
 def reference_cousin(
-    current_package: List[str], imports: Set[str], py_package: List[str], py_type: str
+    current_package: list[str], imports: set[str], py_package: list[str], py_type: str
 ) -> str:
     """
     Returns a reference to a python type in a package that is not descendent, ancestor

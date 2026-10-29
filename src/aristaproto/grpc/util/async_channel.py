@@ -1,11 +1,7 @@
 import asyncio
+from collections.abc import AsyncIterable, AsyncIterator, Iterable
 from typing import (
-    AsyncIterable,
-    AsyncIterator,
-    Iterable,
-    Optional,
     TypeVar,
-    Union,
 )
 
 
@@ -119,7 +115,7 @@ class AsyncChannel(AsyncIterable[T]):
         return self._closed and self._queue.qsize() <= self._waiting_receivers
 
     async def send_from(
-        self, source: Union[Iterable[T], AsyncIterable[T]], close: bool = False
+        self, source: Iterable[T] | AsyncIterable[T], close: bool = False
     ) -> "AsyncChannel[T]":
         """
         Iterates the given [Async]Iterable and sends all the resulting items.
@@ -153,7 +149,7 @@ class AsyncChannel(AsyncIterable[T]):
         await self._queue.put(item)
         return self
 
-    async def receive(self) -> Optional[T]:
+    async def receive(self) -> T | None:
         """
         Returns the next item from this channel when it becomes available,
         or None if the channel is closed before another item is sent.

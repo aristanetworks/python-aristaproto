@@ -1,0 +1,10 @@
+syntax = "proto3";
+
+package namespace_builtins_import;
+
+// A field must not shadow the module used to qualify builtin annotations.
+message Test {
+    int32 builtins = 1;
+    string text = 2;
+    int32 str = 3;
+}

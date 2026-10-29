@@ -7,7 +7,7 @@ Afterwards, commits up to (and including) `124613f55fa8ff62a460e1ad33c5c78723b70
 Changes in this project compared with the base project:
 
 - Renamed to `aristaproto`.
-- Cut support for Python < 3.9.
+- Cut support for Python < 3.10.
 - Updating various CI actions and dependencies.
 - Merged docs from multiple `rst` files to MarkDown.
 - Keep nanosecond precision for `Timestamp`.
@@ -155,7 +155,9 @@ async def main():
     response = await service.echo(echo.EchoRequest(value="hello", extra_times=1))
     print(response)
 
-    async for response in service.echo_stream(echo.EchoRequest(value="hello", extra_times=1)):
+    async for response in service.echo_stream(
+        echo.EchoRequest(value="hello", extra_times=1)
+    ):
         print(response)
 
     # don't forget to close the channel when done!
@@ -165,15 +167,14 @@ async def main():
 if __name__ == "__main__":
     loop = asyncio.get_event_loop()
     loop.run_until_complete(main())
-
 ```
 
 which would output
 
 ```python
-EchoResponse(values=['hello', 'hello'])
-EchoStreamResponse(value='hello')
-EchoStreamResponse(value='hello')
+EchoResponse(values=["hello", "hello"])
+EchoStreamResponse(value="hello")
+EchoStreamResponse(value="hello")
 ```
 
 This project also produces server-facing stubs that can be used to implement a Python
@@ -190,9 +191,13 @@ from typing import AsyncIterator
 
 class EchoService(EchoBase):
     async def echo(self, echo_request: "EchoRequest") -> "EchoResponse":
-        return EchoResponse([echo_request.value for _ in range(echo_request.extra_times)])
+        return EchoResponse(
+            [echo_request.value for _ in range(echo_request.extra_times)]
+        )
 
-    async def echo_stream(self, echo_request: "EchoRequest") -> AsyncIterator["EchoStreamResponse"]:
+    async def echo_stream(
+        self, echo_request: "EchoRequest"
+    ) -> AsyncIterator["EchoStreamResponse"]:
         for _ in range(echo_request.extra_times):
             yield EchoStreamResponse(echo_request.value)
 
@@ -202,7 +207,8 @@ async def main():
     await server.start("127.0.0.1", 50051)
     await server.wait_closed()
 
-if __name__ == '__main__':
+
+if __name__ == "__main__":
     loop = asyncio.get_event_loop()
     loop.run_until_complete(main())
 ```
@@ -412,7 +418,7 @@ value3: str | int = 1
 
 ### Requirements
 
-- Python (3.9 or higher)
+- Python (3.10 or higher)
 
 - [poetry](https://python-poetry.org/docs/#installation)
   *Needed to install dependencies in a virtual environment*

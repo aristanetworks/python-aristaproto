@@ -29,8 +29,8 @@ def test_struct_roundtrip():
     assert struct_pyd_from_dict.to_dict() == data
     assert struct_pyd_from_dict.to_json() == data_json
 
-    struct_pyd_from_dict = StructPydantic(fields={}).from_json(data_json)
-    assert struct_pyd_from_dict.fields == data
-    assert struct_pyd_from_dict.to_dict() == data
-    assert struct_pyd_from_dict == struct_pyd_from_dict
-    assert struct_pyd_from_dict.to_json() == data_json
+    struct_pyd_from_json = StructPydantic(fields={}).from_json(data_json)
+    assert struct_pyd_from_json.fields == data
+    assert struct_pyd_from_json.to_dict() == data
+    assert struct_pyd_from_json == struct_pyd_from_dict
+    assert struct_pyd_from_json.to_json() == data_json

@@ -7,12 +7,10 @@ readme = "README.md"
 repository = "https://github.com/aristanetworks/python-aristaproto"
 keywords = ["protobuf", "gRPC", "aristanetworks", "arista"]
 license = "MIT"
-packages = [
-    { include = "aristaproto", from = "src" }
-]
+packages = [{ include = "aristaproto", from = "src" }]
 
 [tool.poetry.dependencies]
-python = "^3.9"
+python = "^3.10"
 # The Ruff version is also set in .pre-commit-config.yaml
 ruff = { version = ">=0.11.11", optional = true }
 grpclib = "^0.4.1"
@@ -29,7 +27,7 @@ mypy = "^1.11.2"
 sphinx = "7.4.7"
 sphinx-rtd-theme = "3.1.0"
 pre-commit = ">=2.17,<5.0"
-grpcio-tools = "^1.54.2"
+grpcio-tools = "^1.84.0"
 tox = "^4.0.0"
 
 [tool.poetry.group.test.dependencies]
@@ -39,7 +37,7 @@ pytest-asyncio = ">=0.23,<1.3"
 pytest-cov = ">=2.9,<8.0"
 pytest-mock = "^3.12.0"
 pydantic = ">=2.0,<3"
-protobuf = ">=4,<7"
+protobuf = ">=4,<8"
 cachelib = ">=0.10.2,<0.14.0"
 tomlkit = ">=0.7.0"
 
@@ -52,10 +50,29 @@ rust-codec = ["betterproto-rust-codec"]
 
 [tool.ruff]
 extend-exclude = ["tests/output_*"]
-target-version = "py39"
+target-version = "py310"
 
 [tool.ruff.lint]
 extend-select = ["I"]
+
+[tool.ruff.lint.per-file-ignores]
+# Preserve generated annotations, field defaults, and control flow.
+"src/aristaproto/lib/std/google/protobuf/__init__.py" = [
+    "UP",
+    "RUF009",
+    "PIE790",
+    "PLC0206",
+]
+"src/aristaproto/lib/std/google/protobuf/compiler/__init__.py" = [
+    "UP",
+    "RUF009",
+]
+"src/aristaproto/lib/pydantic/google/protobuf/__init__.py" = [
+    "UP",
+    "PIE790",
+    "PLC0206",
+]
+"src/aristaproto/lib/pydantic/google/protobuf/compiler/__init__.py" = ["UP"]
 
 [tool.ruff.lint.isort]
 combine-as-imports = true
@@ -73,7 +90,7 @@ cmd = "pytest"
 help = "Run tests"
 
 [tool.poe.tasks.types]
-cmd  = "mypy src --ignore-missing-imports"
+cmd = "mypy src --ignore-missing-imports"
 help = "Check types with mypy"
 
 [tool.poe.tasks.format]
@@ -101,15 +118,15 @@ cmd = "ruff check --select I src tests"
 help = "Check that the imports are sorted"
 
 [tool.poe.tasks.docs]
-cmd  = "sphinx-build docs docs/build"
+cmd = "sphinx-build docs docs/build"
 help = "Build the sphinx docs"
 
 [tool.poe.tasks.bench]
 shell = "asv run master^! && asv run HEAD^! && asv compare master HEAD"
-help  = "Benchmark current commit vs. master branch"
+help = "Benchmark current commit vs. master branch"
 
 [tool.poe.tasks.clean]
-cmd  = """
+cmd = """
 rm -rf .asv .coverage .mypy_cache .pytest_cache
        dist aristaproto.egg-info **/__pycache__
        testsoutput_*
@@ -139,7 +156,7 @@ max_line_length = 88
 
 [tool.doc8.ignore_path_errors]
 "docs/migrating.rst" = [
-    "D001",  # contains table which is longer than 88 characters long
+    "D001", # contains table which is longer than 88 characters long
 ]
 
 [tool.coverage.run]
@@ -152,10 +169,15 @@ requires =
     tox>=4.2
     tox-poetry-installer[poetry]==1.0.0b1
 env_list =
+    py315
+    py314
+    py313
+    py312
     py311
-    py39
+    py310
 
 [testenv]
+extras = compiler
 commands =
     pytest {posargs: --cov aristaproto}
 poetry_dep_groups =

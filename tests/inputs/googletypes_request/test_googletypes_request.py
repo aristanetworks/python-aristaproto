@@ -1,15 +1,15 @@
+from collections.abc import Callable
 from datetime import (
     datetime,
     timedelta,
 )
 from typing import (
     Any,
-    Callable,
 )
 
 import pytest
 
-import aristaproto.lib.google.protobuf as protobuf
+from aristaproto.lib.google import protobuf
 from tests.mocks import MockChannel
 from tests.output_aristaproto.googletypes_request import (
     Input,

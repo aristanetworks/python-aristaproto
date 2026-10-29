@@ -1,4 +1,4 @@
-import tests.output_aristaproto.casing_inner_class as casing_inner_class
+from tests.output_aristaproto import casing_inner_class
 
 
 def test_message_casing_inner_class_name():

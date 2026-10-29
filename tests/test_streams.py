@@ -1,3 +1,4 @@
+# Message fixtures intentionally match the default generator's typing syntax.
 from dataclasses import dataclass
 from io import BytesIO
 from pathlib import Path
@@ -196,7 +197,7 @@ def test_message_load_too_large():
 def test_message_len_optional_field():
     @dataclass
     class Request(aristaproto.Message):
-        flag: Optional[bool] = aristaproto.message_field(1, wraps=aristaproto.TYPE_BOOL)
+        flag: Optional[bool] = aristaproto.message_field(1, wraps=aristaproto.TYPE_BOOL)  # noqa: UP045
 
     assert len(Request()) == len(b"")
     assert len(Request(flag=True)) == len(b"\n\x02\x08\x01")
@@ -314,7 +315,9 @@ def compile_jar():
         pytest.skip("Maven is absent and is required")
 
     # Compile the JAR
-    proc_maven = run([mvn, "clean", "install", "-f", "tests/streams/java/pom.xml"])
+    proc_maven = run(
+        [mvn, "clean", "install", "-f", "tests/streams/java/pom.xml"], check=False
+    )
     if proc_maven.returncode != 0:
         pytest.skip(
             "Maven compatibility-test.jar build failed (maybe Java version <11?)"

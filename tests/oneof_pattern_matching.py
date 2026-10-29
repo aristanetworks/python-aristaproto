@@ -14,7 +14,7 @@ def test_oneof_pattern_matching():
     class Foo(aristaproto.Message):
         bar: int = aristaproto.int32_field(1, group="group1")
         baz: str = aristaproto.string_field(2, group="group1")
-        sub: Sub = aristaproto.message_field(3, group="group2")
+        sub: Sub = aristaproto.message_field(3, group="group2")  # noqa: RUF009
         abc: str = aristaproto.string_field(4, group="group2")
 
     foo = Foo(baz="test1", abc="test2")
