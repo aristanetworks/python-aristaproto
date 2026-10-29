@@ -418,36 +418,35 @@ value3: str | int = 1
 
 ### Requirements
 
-- Python (3.10 or higher)
+- Python 3.11+ for the full development toolchain. Runtime, generation, and tests
+  support Python 3.10+.
 
-- [poetry](https://python-poetry.org/docs/#installation)
-  *Needed to install dependencies in a virtual environment*
+- [uv](https://docs.astral.sh/uv/getting-started/installation/) manages Python
+  environments and installs dependencies from `uv.lock`. The required uv version
+  is declared in `pyproject.toml`.
 
-- [poethepoet](https://github.com/nat-n/poethepoet) for running development tasks as defined in pyproject.toml
-  - Can be installed to your host environment via `pip install poethepoet` then executed as simple `poe`
-  - or run from the poetry venv as `poetry run poe`
+- [poethepoet](https://github.com/nat-n/poethepoet) provides the development tasks
+  defined in `pyproject.toml`. It is installed with the default `dev` group; invoke
+  tasks with `uv run --locked poe`.
 
 ### Setup
 
 ```sh
-# Get set up with the virtual env & dependencies
-poetry install -E compiler
-
-# Activate the poetry environment
-poetry shell
+# Install the locked development, compiler, test, and lint dependencies
+uv sync --locked --python 3.11
 ```
 
 ### Code style
 
-This project enforces [black](https://github.com/psf/black) python code formatting.
+This project uses [Ruff](https://docs.astral.sh/ruff/) for Python formatting and linting.
 
 Before committing changes run:
 
 ```sh
-poe format
+uv run --locked poe format
 ```
 
-To avoid merge conflicts later, non-black formatted python code will fail in CI.
+CI checks formatting and linting with the pinned pre-commit hooks.
 
 ### Tests
 
@@ -478,16 +477,28 @@ Here's how to run the tests.
 
 ```sh
 # Generate assets from sample .proto files required by the tests
-poe generate
+uv run --locked poe generate
 # Run the tests
-poe test
+uv run --locked poe test
 ```
 
-To run tests as they are run in CI (with tox) run:
+To generate fixtures and run the full suite on Python 3.10–3.15 in isolated
+environments, using the same locked compiler/test groups as CI, run:
 
 ```sh
-poe full-test
+uv run --locked poe full-test
 ```
+
+To select specific Python versions, invoke the runner directly:
+
+```sh
+uv run --locked python -m tests.run_all 3.10 3.15
+```
+
+The `compiler` and `test` dependency groups support Python 3.10+. The default
+`dev` group includes them alongside the `lint` group and development tools that
+require Python 3.11+. CI selects only the groups needed by each job and installs
+third-party dependencies from wheels with `uv sync --locked --no-build`.
 
 ### (Re)compiling Google Well-known Types
 
