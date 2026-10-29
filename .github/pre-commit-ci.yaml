@@ -1,0 +1,32 @@
+# CI uses tools installed from uv.lock, preserving the hooks and file selection
+# in .pre-commit-config.yaml without creating separate hook environments.
+repos:
+  - repo: local
+    hooks:
+      - id: ruff-format
+        name: ruff format
+        entry: ruff format --force-exclude
+        language: system
+        types_or: [python, pyi, jupyter, markdown]
+        require_serial: true
+        args: ["--diff", "src", "tests"]
+      - id: ruff-check
+        name: ruff check
+        entry: ruff check --force-exclude
+        language: system
+        types_or: [python, pyi, jupyter]
+        require_serial: true
+        args: ["src", "tests"]
+      - id: doc8
+        name: doc8
+        entry: python -m doc8
+        language: system
+        files: \.rst$
+        require_serial: true
+      - id: zizmor
+        name: Check GitHub Actions with zizmor
+        entry: zizmor
+        language: system
+        files: ^\.github/
+        pass_filenames: false
+        args: [".github"]

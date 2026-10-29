@@ -12,6 +12,46 @@ permissions:
   contents: read
 
 jobs:
+  package:
+    name: Build and test distributions
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+      - uses: astral-sh/setup-uv@68559e99cc807c1eb7e9238fd43a15bba460eec2 # v10.3.3
+        with:
+          python-version: '3.10'
+          activate-environment: true
+      - name: Install locked dependencies
+        run: uv sync --locked --no-default-groups --group compiler --group test --extra compiler --no-install-project --no-build
+      - name: Build and inspect distributions
+        run: |
+          uv build
+          python - <<'PY'
+          from pathlib import Path
+          import tarfile
+          import zipfile
+
+          with zipfile.ZipFile(next(Path("dist").glob("*.whl"))) as wheel:
+              names = wheel.namelist()
+              for resource in (
+                  "aristaproto/py.typed",
+                  "aristaproto/templates/header.py.j2",
+                  "aristaproto/templates/template.py.j2",
+              ):
+                  assert resource in names, resource
+              assert any(name.endswith("/LICENSE.md") for name in names)
+          with tarfile.open(next(Path("dist").glob("*.tar.gz"))) as sdist:
+              assert any(name.endswith("/LICENSE.md") for name in sdist.getnames())
+          PY
+      - name: Install built wheel
+        run: uv pip install --no-deps --no-build --no-index ./dist/*.whl
+      - name: Test built wheel
+        run: |
+          uv run --no-sync --no-build --no-default-groups python -m tests.generate -v
+          uv run --no-sync --no-build --no-default-groups python -m pytest tests/
+
   tests:
     name: ${{ matrix.os }} / ${{ matrix.python-version }}
     runs-on: ${{ matrix.os }}-latest
@@ -25,46 +65,16 @@ jobs:
         with:
           persist-credentials: false
 
-      - name: Set up Python ${{ matrix.python-version }}
-        uses: actions/setup-python@6d4fd22b20465ccc0f7354476588e8df7c9ca0e0 # v7.1.0
+      - uses: astral-sh/setup-uv@68559e99cc807c1eb7e9238fd43a15bba460eec2 # v10.3.3
         with:
           python-version: ${{ matrix.python-version }}
+          activate-environment: true
 
-      - name: Get full Python version
-        id: full-python-version
-        shell: bash
-        run: echo "version=$(python -c "import sys; print('-'.join(str(v) for v in sys.version_info))")" >> "$GITHUB_OUTPUT"
-
-      - name: Install poetry
-        shell: bash
-        run: |
-          python -m pip install poetry
-          echo "$HOME/.poetry/bin" >> $GITHUB_PATH
-
-      - name: Configure poetry
-        shell: bash
-        run: poetry config virtualenvs.in-project true
-
-      - name: Set up cache
-        uses: actions/cache@55cc8345863c7cc4c66a329aec7e433d2d1c52a9 # v6.1.0
-        id: cache
-        with:
-          path: .venv
-          key: venv-${{ runner.os }}-${{ steps.full-python-version.outputs.version }}-${{ hashFiles('**/poetry.lock') }}
-
-      - name: Ensure cache is healthy
-        if: steps.cache.outputs.cache-hit == 'true'
-        shell: bash
-        run: poetry run pip --version >/dev/null 2>&1 || rm -rf .venv
-
-      - name: Install dependencies
-        shell: bash
-        run: poetry install -E compiler
+      - name: Install locked compiler and test dependencies
+        run: uv sync --locked --no-default-groups --group compiler --group test --extra compiler --no-build
 
       - name: Generate code from proto files
-        shell: bash
-        run: poetry run python -m tests.generate -v
+        run: uv run --no-sync --no-build --no-default-groups python -m tests.generate -v
 
       - name: Execute test suite
-        shell: bash
-        run: poetry run python -m pytest tests/
+        run: uv run --no-sync --no-build --no-default-groups python -m pytest tests/
