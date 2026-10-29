@@ -35,4 +35,4 @@ jobs:
         path: ~/.cache/pre-commit
         key: pre-commit-${{ runner.os }}-${{ steps.uv.outputs.python-runtime-id }}-${{ hashFiles('.pre-commit-config.yaml') }}
     - name: Run pre-commit
-      run: uv run --no-sync --only-group lint pre-commit run --show-diff-on-failure --color=always --all-files
+      run: uv run --no-sync --no-build --only-group lint pre-commit run --show-diff-on-failure --color=always --all-files

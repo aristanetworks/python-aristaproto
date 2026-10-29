@@ -46,11 +46,11 @@ jobs:
               assert any(name.endswith("/LICENSE.md") for name in sdist.getnames())
           PY
       - name: Install built wheel
-        run: uv pip install --no-deps --no-build dist/*.whl
+        run: uv pip install --no-deps --no-build --no-index ./dist/*.whl
       - name: Test built wheel
         run: |
-          uv run --no-sync --no-default-groups python -m tests.generate -v
-          uv run --no-sync --no-default-groups python -m pytest tests/
+          uv run --no-sync --no-build --no-default-groups python -m tests.generate -v
+          uv run --no-sync --no-build --no-default-groups python -m pytest tests/
 
   tests:
     name: ${{ matrix.os }} / ${{ matrix.python-version }}
@@ -74,7 +74,7 @@ jobs:
         run: uv sync --locked --no-default-groups --group compiler --group test --extra compiler --no-build
 
       - name: Generate code from proto files
-        run: uv run --no-sync --no-default-groups python -m tests.generate -v
+        run: uv run --no-sync --no-build --no-default-groups python -m tests.generate -v
 
       - name: Execute test suite
-        run: uv run --no-sync --no-default-groups python -m pytest tests/
+        run: uv run --no-sync --no-build --no-default-groups python -m pytest tests/
