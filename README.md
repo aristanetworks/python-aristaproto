@@ -18,6 +18,9 @@ Changes in this project compared with the base project:
 
 ## Installation
 
+The runtime library and generated code support Python 3.10+. Use Python 3.11+
+for code generation and development.
+
 First, install the package. Note that the `[compiler]` feature flag tells it to install extra dependencies only needed by the `protoc` plugin:
 
 ```sh
@@ -418,9 +421,10 @@ value3: str | int = 1
 
 ### Requirements
 
-- Python (3.10 or higher)
+- Python 3.11 or higher for development and code generation.
+  Runtime tests also cover Python 3.10.
 
-- [poetry](https://python-poetry.org/docs/#installation)
+- [Poetry 2.2 or newer](https://python-poetry.org/docs/#installation)
   *Needed to install dependencies in a virtual environment*
 
 - [poethepoet](https://github.com/nat-n/poethepoet) for running development tasks as defined in pyproject.toml
@@ -430,6 +434,9 @@ value3: str | int = 1
 ### Setup
 
 ```sh
+# Select a development interpreter (3.11 or higher)
+poetry env use python3.11
+
 # Get set up with the virtual env & dependencies
 poetry install -E compiler
 
@@ -483,10 +490,33 @@ poe generate
 poe test
 ```
 
-To run tests as they are run in CI (with tox) run:
+Each Python 3.11+ CI job generates its fixtures and runs the full test suite.
+A separate Python 3.11 generation job provides fixtures and a built wheel to the
+Python 3.10 runtime job, which uses uv without Poetry or compiler dependencies. Runtime dependencies
+and extras use standard project metadata, and Poetry and uv share the standard
+`dev` and `test` dependency groups. Compiler unit tests live in `tests/compiler`
+and run as part of the full suite on Python 3.11+.
+
+To run the full suite across local Python environments with tox, run:
 
 ```sh
 poe full-test
+```
+
+To reproduce the Python 3.10 runtime check, first prepare the fixtures and wheel
+from a Python 3.11+ development environment:
+
+```sh
+poetry run poe generate
+poetry build --format wheel
+```
+
+Then activate a separate Python 3.10 virtual environment and install the wheel
+and shared `test` dependency group directly from `pyproject.toml` with uv:
+
+```sh
+uv pip install --group test dist/*.whl
+python -m pytest tests/ --ignore=tests/compiler
 ```
 
 ### (Re)compiling Google Well-known Types
