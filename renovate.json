@@ -101,6 +101,13 @@
       "semanticCommitType": "ci",
       "commitMessagePrefix": "CI: ",
       "rangeStrategy": "bump"
+    },
+    {
+      "description": "Let uv enforce release age during lockfile maintenance",
+      "matchUpdateTypes": [
+        "lockFileMaintenance"
+      ],
+      "minimumReleaseAge": "0 days"
     }
   ]
 }
