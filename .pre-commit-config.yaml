@@ -14,6 +14,7 @@ repos:
     rev: 2a7a5eef1de341fab48019faf3de8a64ac2ad900  # frozen: v2.0.0
     hooks:
       - id: doc8
+        language: python
         additional_dependencies:
           - toml==0.10.2
 
