@@ -10,6 +10,9 @@
     "pep621",
     "pre-commit"
   ],
+  "pep621": {
+    "constraintsFiltering": "strict"
+  },
   "pre-commit": {
     "enabled": true
   },
@@ -40,6 +43,21 @@
       ],
       "semanticCommitType": "ci",
       "commitMessagePrefix": "CI(requirements): "
+    },
+    {
+      "description": "Use the Python 3.11 floor declared for the dev and lint groups",
+      "matchManagers": [
+        "pep621"
+      ],
+      "matchDepTypes": [
+        "dependency-groups"
+      ],
+      "matchJsonata": [
+        "managerData.depGroup in ['dev', 'lint']"
+      ],
+      "constraints": {
+        "python": ">=3.11,<4.0"
+      }
     },
     {
       "description": "Maintain dependencies for GitHub Actions",
